@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTG Arena Event EV & Expected Payouts Calculator</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            mana: {
+              white: '#fef08a',
+              blue: '#38bdf8',
+              black: '#94a3b8',
+              red: '#f87171',
+              green: '#4ade80'
+            },
+            gem: {
+              DEFAULT: '#06b6d4',
+              light: '#22d3ee',
+              dark: '#0891b2'
+            },
+            gold: {
+              DEFAULT: '#f59e0b',
+              light: '#fde047',
+              dark: '#d97706'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="text-slate-100 min-h-screen pb-16 antialiased">
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-slate-800/80 bg-slate-900/90 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Cute MTG Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div class="cute-mtg-avatar w-11 h-11 rounded-2xl flex items-center justify-center relative cursor-pointer shadow-lg group" id="cute-logo-avatar" title="Click to shuffle theme!">
+          <svg class="w-8 h-8 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="lotusGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="var(--theme-accent-light, #22d3ee)" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="var(--theme-accent, #06b6d4)" stop-opacity="0.25"/>
+              </radialGradient>
+              <linearGradient id="lotusCenter" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fef08a"/>
+                <stop offset="50%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#ea580c"/>
+              </linearGradient>
+            </defs>
+            <!-- Lotus Petals (Cute MTG Mana Flower) -->
+            <path d="M24 6 C20 14 16 22 24 34 C32 22 28 14 24 6 Z" fill="url(#lotusGlow)" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M14 16 C10 22 12 30 22 36 C18 28 16 22 14 16 Z" fill="var(--theme-accent, #06b6d4)" fill-opacity="0.75" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1.2"/>
+            <path d="M34 16 C38 22 36 30 26 36 C30 28 32 22 34 16 Z" fill="var(--theme-accent, #06b6d4)" fill-opacity="0.75" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1.2"/>
+            <path d="M7 25 C6 31 10 37 20 38 C14 34 10 30 7 25 Z" fill="var(--theme-accent-dark, #0891b2)" fill-opacity="0.85" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1"/>
+            <path d="M41 25 C42 31 38 37 28 38 C34 34 38 30 41 25 Z" fill="var(--theme-accent-dark, #0891b2)" fill-opacity="0.85" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1"/>
+            <!-- Cute Center Bud / Core -->
+            <ellipse cx="24" cy="30" rx="6" ry="7" fill="url(#lotusCenter)" stroke="#fef08a" stroke-width="1"/>
+            <!-- Kawaii Sparkling Eyes & Smile -->
+            <circle cx="21.5" cy="29" r="1.2" fill="#1e1b4b"/>
+            <circle cx="21.2" cy="28.6" r="0.4" fill="#ffffff"/>
+            <circle cx="26.5" cy="29" r="1.2" fill="#1e1b4b"/>
+            <circle cx="26.2" cy="28.6" r="0.4" fill="#ffffff"/>
+            <path d="M23 32 Q24 33.5 25 32" stroke="#1e1b4b" stroke-width="0.9" stroke-linecap="round" fill="none"/>
+            <!-- Cute Mana Sparkles -->
+            <circle cx="10" cy="11" r="1.2" fill="#fef08a" opacity="0.9"/>
+            <circle cx="38" cy="11" r="1.2" fill="#fef08a" opacity="0.9"/>
+            <circle cx="24" cy="42" r="1.2" fill="var(--theme-accent-light, #22d3ee)"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight theme-title-gradient">
+            MTG Arena Event EV Calculator
+          </h1>
+          <p class="text-xs text-slate-400">Expected Value & Payout Analysis for Draft, Sealed, and Arena Direct</p>
+        </div>
+      </div>
+
+      <!-- Cache Status, Theme Selector & Quick Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        
+        <!-- Theme Selector (5 MTGA Colors + Artifact + Random) -->
+        <div class="theme-select-container flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 shadow-sm">
+          <label for="theme-select" class="text-[11px] font-semibold text-slate-400 pl-1.5 flex items-center gap-1 pointer-events-none">
+            <i data-lucide="palette" class="w-3.5 h-3.5 theme-accent-text"></i>
+            <span class="hidden md:inline">Theme:</span>
+          </label>
+          <div class="relative">
+            <select id="theme-select" class="bg-slate-800/90 text-slate-100 text-xs rounded-lg px-2 py-1 pr-6 border border-slate-700 focus:border-cyan-500 outline-none cursor-pointer font-medium appearance-none">
+              <option value="random">🎲 Random</option>
+              <option value="white">☀️ Plains</option>
+              <option value="blue">💧 Island</option>
+              <option value="black">💀 Swamp</option>
+              <option value="red">🔥 Mountain</option>
+              <option value="green">🌳 Forest</option>
+              <option value="artifact">⚙️ Artifact</option>
+            </select>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 absolute right-1.5 top-2 pointer-events-none"></i>
+          </div>
+          <button id="btn-theme-shuffle" class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Roll Random Theme">
+            <i data-lucide="dice-5" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Changes saved to browser cache indicator -->
+        <div id="cache-status-badge" class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800 text-slate-400 text-[11px] font-medium transition-all duration-300 shadow-sm" title="All edits are automatically saved to browser storage">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span id="cache-status-text">Changes saved to browser cache</span>
+        </div>
+
+        <!-- Export, Import, Reset Actions -->
+        <div class="flex items-center gap-1.5">
+          <button id="btn-export-json" class="px-2.5 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition flex items-center gap-1 shadow-sm" title="Export configurations as JSON">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Export</span>
+          </button>
+          <button id="btn-import-json" class="px-2.5 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition flex items-center gap-1 shadow-sm" title="Import configurations from JSON">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Import</span>
+          </button>
+          <input type="file" id="import-file-input" accept=".json" class="hidden">
+          <button id="btn-reset-all" class="px-2.5 py-1.5 text-xs font-medium bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 hover:text-rose-100 rounded-lg border border-rose-800/40 transition flex items-center gap-1 shadow-sm" title="Reset all presets & valuations to defaults">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Top Grid: Event Settings & USD Valuations -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Event Preset Selector & Configuration (7 cols on lg) -->
+      <section class="lg:col-span-7 glass-panel rounded-2xl p-5 border border-slate-800/80 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="swords" class="w-5 h-5 text-cyan-400"></i>
+            <h2 class="text-base font-semibold text-slate-100">Event Configuration & Presets</h2>
+          </div>
+          <span id="event-category-badge" class="px-2.5 py-0.5 text-xs font-medium rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800/60">
+            Arena Direct
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Preset Selector -->
+          <div class="sm:col-span-2">
+            <label for="event-select" class="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
+              <span>Select Event Preset</span>
+              <span class="text-slate-400 text-[11px] font-normal">Prepopulated & Custom</span>
+            </label>
+            <div class="relative">
+              <select id="event-select" class="w-full bg-slate-900 text-slate-100 rounded-xl px-3.5 py-2.5 text-sm border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition appearance-none cursor-pointer pr-10 font-medium">
+                <!-- Populated dynamically -->
+              </select>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Event Name -->
+          <div>
+            <label for="event-name" class="block text-xs font-semibold text-slate-300 mb-1">Event Name</label>
+            <input type="text" id="event-name" class="w-full bg-slate-900 text-slate-100 rounded-xl px-3 py-2 text-sm border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition" placeholder="e.g. Arena Direct Play Box">
+          </div>
+
+          <!-- Entry Fee in Gems -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label for="event-entry-gems" class="text-xs font-semibold text-slate-300">
+                Entry Fee (Gems 💎)
+              </label>
+              <span id="entry-usd-equiv" class="text-cyan-400 font-mono text-[11px] font-semibold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
+                ≈ $40.00 USD
+              </span>
+            </div>
+            <div class="relative">
+              <input type="number" id="event-entry-gems" min="0" step="50" class="w-full bg-slate-900 text-slate-100 rounded-xl pl-8 pr-3 py-2 text-sm border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none font-mono font-medium transition" value="8000" placeholder="8000">
+              <span class="absolute left-2.5 top-2 text-sm pointer-events-none">💎</span>
+            </div>
+            <!-- Quick Entry Fee Presets with Vertical "QUICK" Label -->
+            <div class="flex items-stretch gap-1.5 mt-2">
+              <div class="badge-vertical-label flex flex-col items-center justify-center px-1 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-widest select-none shadow-sm shrink-0">
+                QUICK
+              </div>
+              <div class="flex flex-wrap gap-1 items-center flex-1">
+                <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition" data-gems="8000">8k (Direct)</button>
+                <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="2000">2k (Sealed)</button>
+                <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="1500">1.5k (Draft)</button>
+                <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="750">750 (Quick)</button>
+                <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="375">375 (Const)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Losses Allowed -->
+          <div>
+            <label for="event-max-losses" class="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
+              <span>Losses Allowed (# of Losses)</span>
+              <span class="text-slate-400 text-[10px]">Elimination limit</span>
+            </label>
+            <div class="relative">
+              <input type="number" id="event-max-losses" min="1" max="10" step="1" class="w-full bg-slate-900 text-slate-100 rounded-xl px-3 py-2 text-sm border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none font-mono font-medium transition" placeholder="2">
+              <span class="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">losses</span>
+            </div>
+          </div>
+
+          <!-- Max Wins -->
+          <div>
+            <label for="event-max-wins" class="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
+              <span>Max Wins (Trophy 🏆)</span>
+              <span class="text-slate-400 text-[10px]">Target win count</span>
+            </label>
+            <div class="relative">
+              <input type="number" id="event-max-wins" min="1" max="15" step="1" class="w-full bg-slate-900 text-slate-100 rounded-xl px-3 py-2 text-sm border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none font-mono font-medium transition" placeholder="7">
+              <span class="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">wins</span>
+            </div>
+          </div>
+
+          <!-- Format Type -->
+          <div>
+            <label for="event-format-type" class="block text-xs font-semibold text-slate-300 mb-1">Event Structure Format</label>
+            <select id="event-format-type" class="w-full bg-slate-900 text-slate-100 rounded-xl px-3 py-2 text-sm border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none cursor-pointer">
+              <option value="elimination">Elimination (X Losses or Max Wins)</option>
+              <option value="fixed_matches">Fixed Matches (e.g. 3 Matches Played)</option>
+            </select>
+          </div>
+
+          <!-- Bo3 Mode & Game Win Rate Toggle -->
+          <div class="flex flex-col justify-center">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Best-of-Three (Bo3) Match</label>
+            <div class="bo3-container flex items-center gap-3 bg-slate-900/90 rounded-xl px-3 py-2 border border-slate-700">
+              <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-200">
+                <input type="checkbox" id="event-is-bo3" class="w-4 h-4 rounded text-cyan-500 bg-slate-800 border-slate-600 focus:ring-cyan-400 focus:ring-offset-slate-900">
+                <span>Bo3 Match Format</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Presets Action Bar: Save / Save as New / Delete -->
+        <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <button id="btn-save-preset" class="px-3.5 py-2 text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl shadow-md shadow-cyan-600/20 transition flex items-center gap-1.5">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              Save Changes
+            </button>
+            <button id="btn-save-as-new" class="px-3.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 shadow-sm transition flex items-center gap-1.5">
+              <i data-lucide="bookmark-plus" class="w-3.5 h-3.5"></i>
+              Save as New
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="btn-delete-preset" class="px-3 py-2 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-xl border border-rose-900/40 transition flex items-center gap-1.5" title="Delete custom preset">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              Delete
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- USD Valuations Settings (5 cols on lg) -->
+      <section class="lg:col-span-5 glass-panel rounded-2xl p-5 border border-slate-800/80 shadow-xl space-y-4 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="dollar-sign" class="w-5 h-5 text-amber-400"></i>
+              <h2 class="text-base font-semibold text-slate-100">Reward Valuations (USD)</h2>
+            </div>
+            <button id="btn-reset-valuations" class="text-xs text-slate-400 hover:text-cyan-400 transition flex items-center gap-1" title="Reset valuations to defaults">
+              <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+              Reset Values
+            </button>
+          </div>
+          <p class="text-xs text-slate-400 mt-2 mb-3">
+            Configure your personal dollar valuation for each reward currency. Values are persisted to browser storage.
+          </p>
+
+          <div class="space-y-3">
+            <!-- Gems Bundle Valuation -->
+            <div class="glass-card rounded-xl p-3 border border-slate-700/60 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <span class="text-cyan-400 font-bold">💎 Gems Rate</span>
+                </label>
+                <span id="gem-unit-cost-label" class="text-[11px] font-mono text-cyan-300 bg-cyan-950/70 px-2 py-0.5 rounded border border-cyan-800/40">
+                  $0.00500 / gem
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="relative">
+                  <span class="absolute left-2 top-2 text-slate-400 font-mono text-xs">$</span>
+                  <input type="number" id="val-gem-price" min="1" step="1" class="w-full bg-slate-900/90 text-slate-100 rounded-lg pl-5 pr-2 py-1.5 text-xs border border-slate-700 focus:border-cyan-500 font-mono" value="100">
+                  <span class="text-[10px] text-slate-400 block mt-0.5">Bundle Price ($)</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="val-gem-amount" min="100" step="500" class="w-full bg-slate-900/90 text-slate-100 rounded-lg px-2 py-1.5 text-xs border border-slate-700 focus:border-cyan-500 font-mono" value="20000">
+                  <span class="text-[10px] text-slate-400 block mt-0.5">Gems Amount</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Other Valuations Grid -->
+            <div class="grid grid-cols-2 gap-2.5">
+              <!-- Packs Value -->
+              <div class="glass-card rounded-xl p-2.5 border border-slate-700/60">
+                <label for="val-pack-price" class="text-xs font-semibold text-slate-200 flex items-center justify-between mb-1">
+                  <span class="text-amber-400">🎴 Pack Value</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute left-2.5 top-1.5 text-slate-400 font-mono text-xs">$</span>
+                  <input type="number" id="val-pack-price" min="0" step="0.25" class="w-full bg-slate-900/90 text-slate-100 rounded-lg pl-6 pr-2 py-1.5 text-xs border border-slate-700 focus:border-amber-500 font-mono" value="0.00">
+                </div>
+                <span class="text-[10px] text-slate-400 block mt-1">Default: $0 (unopened)</span>
+              </div>
+
+              <!-- Play Boxes Value -->
+              <div class="glass-card rounded-xl p-2.5 border border-slate-700/60">
+                <label for="val-playbox-price" class="text-xs font-semibold text-slate-200 flex items-center justify-between mb-1">
+                  <span class="text-blue-400">📦 Play Box</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute left-2.5 top-1.5 text-slate-400 font-mono text-xs">$</span>
+                  <input type="number" id="val-playbox-price" min="0" step="5" class="w-full bg-slate-900/90 text-slate-100 rounded-lg pl-6 pr-2 py-1.5 text-xs border border-slate-700 focus:border-blue-500 font-mono" value="100.00">
+                </div>
+                <span class="text-[10px] text-slate-400 block mt-1">Default: $100.00</span>
+              </div>
+
+              <!-- Collector Boxes Value -->
+              <div class="glass-card rounded-xl p-2.5 border border-slate-700/60">
+                <label for="val-collectorbox-price" class="text-xs font-semibold text-slate-200 flex items-center justify-between mb-1">
+                  <span class="text-purple-400">✨ Collector Box</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute left-2.5 top-1.5 text-slate-400 font-mono text-xs">$</span>
+                  <input type="number" id="val-collectorbox-price" min="0" step="10" class="w-full bg-slate-900/90 text-slate-100 rounded-lg pl-6 pr-2 py-1.5 text-xs border border-slate-700 focus:border-purple-500 font-mono" value="400.00">
+                </div>
+                <span class="text-[10px] text-slate-400 block mt-1">Default: $400.00</span>
+              </div>
+
+              <!-- Other Currency / Custom -->
+              <div class="glass-card rounded-xl p-2.5 border border-slate-700/60">
+                <label for="val-other-price" class="text-xs font-semibold text-slate-200 flex items-center justify-between mb-1">
+                  <span class="text-emerald-400">🪙 Other Value</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute left-2.5 top-1.5 text-slate-400 font-mono text-xs">$</span>
+                  <input type="number" id="val-other-price" min="0" step="1" class="w-full bg-slate-900/90 text-slate-100 rounded-lg pl-6 pr-2 py-1.5 text-xs border border-slate-700 focus:border-emerald-500 font-mono" value="0.00">
+                </div>
+                <span class="text-[10px] text-slate-400 block mt-1">Default: $0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <span>Total Event Entry Cost:</span>
+          <span id="summary-entry-usd" class="font-bold text-slate-100 font-mono text-sm">$40.00 USD</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Generic Reward Payouts Table (Editable) -->
+    <section class="glass-panel rounded-2xl p-5 border border-slate-800/80 shadow-xl space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="table-2" class="w-5 h-5 text-indigo-400"></i>
+          <div>
+            <h2 class="text-base font-semibold text-slate-100">Event Rewards by Win Tier</h2>
+            <p class="text-xs text-slate-400">Fill out or customize rewards for each win count. Changes update calculations live.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-add-win-row" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            Add Win Tier
+          </button>
+          <button id="btn-remove-win-row" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-rose-300 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
+            <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+            Remove Last Tier
+          </button>
+        </div>
+      </div>
+
+      <!-- Editable Rewards Table Container -->
+      <div class="ev-table-container rounded-xl border border-slate-800 bg-slate-900/60">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+              <th class="py-2.5 px-3 w-20">Wins</th>
+              <th class="py-2.5 px-2.5">Gems (💎)</th>
+              <th class="py-2.5 px-2.5">Packs (🎴)</th>
+              <th class="py-2.5 px-2.5">Play Boxes (📦)</th>
+              <th class="py-2.5 px-2.5">Collector Boxes (✨)</th>
+              <th class="py-2.5 px-2.5">Other ($)</th>
+              <th class="py-2.5 px-2.5 text-right">Total Tier Value ($)</th>
+              <th class="py-2.5 px-3 text-right">Probability @ WR</th>
+            </tr>
+          </thead>
+          <tbody id="rewards-table-body" class="divide-y divide-slate-800/80 font-mono">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- User Win Rate & High-Level Summary Card -->
+    <section class="glass-panel rounded-2xl p-5 border border-slate-800/80 shadow-xl space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="target-icon-box w-9 h-9 rounded-xl flex items-center justify-center">
+            <i data-lucide="target" class="w-5 h-5 theme-accent-text"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-semibold text-slate-100">Your Win Rate & Projected Performance</h2>
+            <p class="text-xs text-slate-400">Set your specific win rate to highlight in the table and compute real-time performance metrics</p>
+          </div>
+        </div>
+
+        <!-- User Win Rate Control -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold text-slate-300">Your Win Rate:</span>
+          <div class="wr-input-container flex items-center rounded-xl px-2 py-1 shadow-inner">
+            <button id="btn-wr-minus" class="px-2 py-0.5 font-bold text-sm transition">-</button>
+            <input type="number" id="input-user-winrate" min="0" max="100" step="0.5" class="w-16 bg-transparent text-center font-mono font-bold text-sm outline-none" value="56.5">
+            <span class="text-xs font-bold mr-1">%</span>
+            <button id="btn-wr-plus" class="px-2 py-0.5 font-bold text-sm transition">+</button>
+          </div>
+
+          <!-- Quick presets buttons -->
+          <div class="quick-wr-container hidden sm:flex items-center gap-1 p-1 rounded-xl">
+            <button class="btn-quick-wr px-2 py-1 text-[11px] font-medium rounded-lg" data-wr="50">50%</button>
+            <button class="btn-quick-wr px-2 py-1 text-[11px] font-medium rounded-lg" data-wr="55">55%</button>
+            <button class="btn-quick-wr px-2 py-1 text-[11px] font-medium rounded-lg" data-wr="60">60%</button>
+            <button class="btn-quick-wr px-2 py-1 text-[11px] font-medium rounded-lg" data-wr="65">65%</button>
+            <button class="btn-quick-wr px-2 py-1 text-[11px] font-medium rounded-lg" data-wr="70">70%</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <!-- Net EV USD -->
+        <div class="glass-card rounded-xl p-3.5 border border-slate-700/60 relative overflow-hidden">
+          <span class="text-[11px] font-medium text-slate-400 block mb-1">Net Expected Value</span>
+          <div id="kpi-net-usd" class="text-xl font-bold font-mono val-positive">+$0.00</div>
+          <span id="kpi-gross-usd" class="text-[10px] text-slate-400 font-mono block mt-1">Gross: $0.00</span>
+        </div>
+
+        <!-- Net Gems -->
+        <div class="glass-card rounded-xl p-3.5 border border-slate-700/60">
+          <span class="text-[11px] font-medium text-slate-400 block mb-1">Net Gems EV</span>
+          <div id="kpi-net-gems" class="text-xl font-bold font-mono text-cyan-400">0</div>
+          <span id="kpi-gross-gems" class="text-[10px] text-slate-400 font-mono block mt-1">Gross: 0 gems</span>
+        </div>
+
+        <!-- ROI % -->
+        <div class="glass-card rounded-xl p-3.5 border border-slate-700/60">
+          <span class="text-[11px] font-medium text-slate-400 block mb-1">Expected ROI</span>
+          <div id="kpi-roi" class="text-xl font-bold font-mono val-positive">+0.0%</div>
+          <span id="kpi-gem-return" class="text-[10px] text-slate-400 font-mono block mt-1">Gem Return: 0%</span>
+        </div>
+
+        <!-- Physical Boxes EV -->
+        <div class="glass-card rounded-xl p-3.5 border border-slate-700/60">
+          <span class="text-[11px] font-medium text-slate-400 block mb-1">Expected Boxes</span>
+          <div id="kpi-boxes" class="text-xl font-bold font-mono text-purple-300">0.00</div>
+          <span id="kpi-boxes-detail" class="text-[10px] text-slate-400 font-mono block mt-1">Play: 0 | Col: 0</span>
+        </div>
+
+        <!-- Break-Even Win Rate -->
+        <div class="glass-card rounded-xl p-3.5 border border-slate-700/60">
+          <span class="text-[11px] font-medium text-slate-400 block mb-1">Break-Even WR ($0)</span>
+          <div id="kpi-breakeven-usd" class="text-xl font-bold font-mono text-amber-400">0.0%</div>
+          <span class="text-[10px] text-slate-400 font-mono block mt-1">Net $0 threshold</span>
+        </div>
+
+        <!-- Infinite Gems WR -->
+        <div class="glass-card rounded-xl p-3.5 border border-slate-700/60">
+          <span class="text-[11px] font-medium text-slate-400 block mb-1">Infinite Gems WR</span>
+          <div id="kpi-infinite-gems" class="text-xl font-bold font-mono text-emerald-400">0.0%</div>
+          <span class="text-[10px] text-slate-400 font-mono block mt-1">100% gem return</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Expected Rewards Payouts Table (50% - 70% + Custom Win Rate) -->
+    <section class="glass-panel rounded-2xl p-5 border border-slate-800/80 shadow-xl space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="trending-up" class="w-5 h-5 text-emerald-400"></i>
+          <div>
+            <h2 class="text-base font-semibold text-slate-100">Expected Payouts by Win Rate (50% – 70%)</h2>
+            <p class="text-xs text-slate-400">1 row per percentage point. Your configured win rate is highlighted and inserted automatically.</p>
+          </div>
+        </div>
+
+        <!-- Table Display Controls -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-400">Win Rate Range:</span>
+            <select id="select-wr-range" class="bg-slate-900 text-slate-200 rounded-lg px-2.5 py-1 text-xs border border-slate-700 outline-none cursor-pointer font-medium">
+              <option value="50-70">50% – 70% (Standard)</option>
+              <option value="40-80">40% – 80% (Extended)</option>
+              <option value="30-90">30% – 90% (Wide)</option>
+              <option value="0-100">0% – 100% (Complete)</option>
+            </select>
+          </div>
+
+          <div id="bo3-indicator-badge" class="hidden text-xs bg-indigo-950/80 text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-800/50">
+            Bo3 Game WR → Match WR
+          </div>
+        </div>
+      </div>
+
+      <!-- Generated EV Table Container -->
+      <div class="ev-table-container rounded-xl border border-slate-800 bg-slate-900/60">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead id="ev-table-head">
+            <!-- Dynamically populated based on active reward columns -->
+          </thead>
+          <tbody id="ev-table-body" class="divide-y divide-slate-800/80 font-mono">
+            <!-- Dynamically populated 50-70% EV rows with custom win rate highlighted -->
+          </tbody>
+            <!-- Dynamically populated 50-70% EV rows with custom win rate highlighted -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Visual Analytics: Charts Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Chart 1: EV Curve ($ Net Value vs Win Rate) -->
+      <div class="glass-panel rounded-2xl p-5 border border-slate-800/80 shadow-xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <div class="flex items-center gap-2">
+            <i data-lucide="line-chart" class="w-4 h-4 text-cyan-400"></i>
+            <h3 class="text-sm font-semibold text-slate-100">Expected Net Value ($) vs Win Rate</h3>
+          </div>
+          <span class="text-[11px] text-slate-400">Green = Profitable</span>
+        </div>
+        <div class="h-64 relative">
+          <canvas id="ev-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Win Outcome Distribution Histogram -->
+      <div class="glass-panel rounded-2xl p-5 border border-slate-800/80 shadow-xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <div class="flex items-center gap-2">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-400"></i>
+            <h3 class="text-sm font-semibold text-slate-100">Win Distribution at <span id="chart-wr-label" class="text-cyan-400">56.5%</span> Win Rate</h3>
+          </div>
+          <span class="text-[11px] text-slate-400">% Chance of Reaching Each Win Count</span>
+        </div>
+        <div class="h-64 relative">
+          <canvas id="dist-chart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Distribution Detail Modal -->
+  <div id="modal-distribution" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-lg w-full border border-slate-700 shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="pie-chart" class="w-5 h-5 text-cyan-400"></i>
+          <h3 class="text-base font-bold text-slate-100" id="modal-dist-title">Win Probability Distribution</h3>
+        </div>
+        <button id="modal-dist-close" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div class="text-xs text-slate-300" id="modal-dist-summary">
+          <!-- Summary inserted dynamically -->
+        </div>
+
+        <div class="ev-table-container max-h-72 rounded-xl border border-slate-800 bg-slate-900/80">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 text-[11px] uppercase">
+                <th class="py-2.5 px-3">Wins</th>
+                <th class="py-2.5 px-3 text-right">Exact Chance</th>
+                <th class="py-2.5 px-3 text-right">Chance of ≥ Wins</th>
+                <th class="py-2.5 px-3 text-right">Reward Value</th>
+              </tr>
+            </thead>
+            <tbody id="modal-dist-tbody" class="divide-y divide-slate-800/80 font-mono">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button id="modal-dist-btn-close" class="px-4 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Event Save-As Modal -->
+  <div id="modal-save-as" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-md w-full border border-slate-700 shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="bookmark-plus" class="w-5 h-5 text-cyan-400"></i>
+          <h3 class="text-base font-bold text-slate-100">Save as New Preset</h3>
+        </div>
+        <button id="modal-save-close" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div>
+        <label for="input-new-preset-name" class="block text-xs font-semibold text-slate-300 mb-1.5">Preset Name</label>
+        <input type="text" id="input-new-preset-name" class="w-full bg-slate-900 text-slate-100 rounded-xl px-3.5 py-2.5 text-sm border border-slate-700 focus:border-cyan-500 outline-none" placeholder="e.g. My Custom Draft Event">
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button id="modal-save-cancel" class="px-4 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition">
+          Cancel
+        </button>
+        <button id="modal-save-confirm" class="px-4 py-2 text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl shadow-md shadow-cyan-600/20 transition">
+          Save Preset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div id="modal-reset-confirm" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-md w-full border border-rose-900/60 shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-rose-950/80 border border-rose-700/60 flex items-center justify-center text-rose-400 font-bold text-lg shadow-lg shadow-rose-950/40">
+            ⚠️
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-100">Reset All Settings?</h3>
+            <p class="text-xs text-rose-300 font-medium">Are you sure? All changes will be lost.</p>
+          </div>
+        </div>
+        <button id="modal-reset-close" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="bg-slate-900/90 rounded-xl p-3.5 border border-slate-800 text-xs text-slate-300 leading-relaxed space-y-2">
+        <p>This will permanently reset everything back to the factory MTG Arena defaults:</p>
+        <ul class="list-disc list-inside text-slate-400 text-[11px] space-y-1">
+          <li>Custom created presets will be deleted.</li>
+          <li>Customized reward tiers & valuations will reset to defaults.</li>
+          <li>Win rates and cached state will be cleared.</li>
+        </ul>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button id="modal-reset-cancel" class="px-4 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition">
+          Cancel
+        </button>
+        <button id="modal-reset-confirm-btn" class="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white rounded-xl shadow-md shadow-rose-600/30 transition flex items-center gap-1.5">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          Yes, Reset Everything
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,645 @@
+/* MTG Arena EV Calculator Comprehensive Theme Engine */
+
+:root,
+[data-theme="blue"] {
+  /* 💧 Island (Blue Mana) - Deep Mystic Ocean & Electric Azure/Cyan */
+  --theme-bg-gradient: radial-gradient(ellipse at 50% -10%, #0284c7 0%, #0369a1 28%, #0c2e59 58%, #02122b 100%);
+  --theme-header-bg: rgba(6, 30, 58, 0.95);
+  --theme-panel-bg: rgba(7, 34, 66, 0.90);
+  --theme-panel-border: rgba(56, 189, 248, 0.45);
+  --theme-card-bg: rgba(12, 48, 90, 0.75);
+  --theme-card-border: rgba(56, 189, 248, 0.30);
+  --theme-input-bg: rgba(4, 20, 40, 0.95);
+  --theme-input-border: rgba(14, 165, 233, 0.55);
+  --theme-btn-secondary-bg: rgba(10, 42, 78, 0.90);
+  --theme-btn-secondary-hover: rgba(14, 65, 120, 1);
+  --theme-table-header-bg: rgba(5, 24, 46, 0.96);
+  --theme-table-row-hover: rgba(14, 165, 233, 0.22);
+  --theme-accent: #06b6d4;
+  --theme-accent-light: #38bdf8;
+  --theme-accent-dark: #0284c7;
+  --theme-glow: rgba(6, 182, 212, 0.55);
+  --theme-bg-glow: rgba(6, 182, 212, 0.22);
+  --theme-border: rgba(56, 189, 248, 0.70);
+  --theme-border-subtle: rgba(56, 189, 248, 0.28);
+  --theme-text-gradient: linear-gradient(135deg, #f0f9ff 0%, #38bdf8 45%, #06b6d4 100%);
+  --theme-badge-bg: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+  --theme-chart-bar: rgba(6, 182, 212, 0.85);
+  --theme-body-text: #f3f4f6;
+  --theme-subtext: #94a3b8;
+  --theme-label-text: #cbd5e1;
+  --theme-prog-track: rgba(15, 23, 42, 0.8);
+  --theme-prog-bar: #06b6d4;
+  --theme-currency-gems: #38bdf8;
+  --theme-currency-packs: #fde047;
+  --theme-currency-play: #60a5fa;
+  --theme-currency-col: #c084fc;
+}
+
+[data-theme="white"] {
+  /* ☀️ Plains (White Mana) - Warm Sunlit Alabaster, Ivory & Radiant Amber Gold */
+  --theme-bg-gradient: radial-gradient(ellipse at 50% -10%, #fffdfa 0%, #fef8eb 35%, #f7efe1 70%, #f0e6d4 100%);
+  --theme-header-bg: rgba(255, 255, 255, 0.96);
+  --theme-panel-bg: rgba(255, 255, 255, 0.95);
+  --theme-panel-border: rgba(217, 119, 6, 0.35);
+  --theme-card-bg: rgba(255, 253, 247, 0.98);
+  --theme-card-border: rgba(217, 119, 6, 0.25);
+  --theme-input-bg: #ffffff;
+  --theme-input-border: rgba(217, 119, 6, 0.38);
+  --theme-btn-secondary-bg: #fef3c7;
+  --theme-btn-secondary-hover: #fde68a;
+  --theme-table-header-bg: #fef3c7;
+  --theme-table-row-hover: rgba(254, 243, 199, 0.50);
+  --theme-accent: #d97706;
+  --theme-accent-light: #b45309;
+  --theme-accent-dark: #92400e;
+  --theme-glow: rgba(245, 158, 11, 0.35);
+  --theme-bg-glow: rgba(245, 158, 11, 0.14);
+  --theme-border: rgba(217, 119, 6, 0.55);
+  --theme-border-subtle: rgba(217, 119, 6, 0.22);
+  --theme-text-gradient: linear-gradient(135deg, #78350f 0%, #b45309 45%, #d97706 100%);
+  --theme-badge-bg: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  --theme-chart-bar: rgba(217, 119, 6, 0.85);
+  --theme-body-text: #0f172a;
+  --theme-subtext: #475569;
+  --theme-label-text: #1e293b;
+  --theme-prog-track: rgba(217, 119, 6, 0.15);
+  --theme-prog-bar: #d97706;
+  --theme-currency-gems: #0284c7;
+  --theme-currency-packs: #b45309;
+  --theme-currency-play: #2563eb;
+  --theme-currency-col: #7e22ce;
+}
+
+[data-theme="black"] {
+  /* 💀 Swamp (Black Mana) - Deep Obsidian Black with Dark Purple Subtle Accents */
+  --theme-bg-gradient: radial-gradient(ellipse at 50% 0%, #150a22 0%, #0d0615 45%, #050208 100%);
+  --theme-header-bg: rgba(13, 6, 21, 0.95);
+  --theme-panel-bg: rgba(16, 8, 26, 0.90);
+  --theme-panel-border: rgba(168, 85, 247, 0.30);
+  --theme-card-bg: rgba(25, 12, 40, 0.70);
+  --theme-card-border: rgba(168, 85, 247, 0.20);
+  --theme-input-bg: rgba(10, 4, 16, 0.95);
+  --theme-input-border: rgba(168, 85, 247, 0.40);
+  --theme-btn-secondary-bg: rgba(28, 14, 45, 0.90);
+  --theme-btn-secondary-hover: rgba(45, 20, 72, 1);
+  --theme-table-header-bg: rgba(12, 5, 20, 0.96);
+  --theme-table-row-hover: rgba(168, 85, 247, 0.20);
+  --theme-accent: #a855f7;
+  --theme-accent-light: #c084fc;
+  --theme-accent-dark: #7e22ce;
+  --theme-glow: rgba(168, 85, 247, 0.45);
+  --theme-bg-glow: rgba(168, 85, 247, 0.15);
+  --theme-border: rgba(168, 85, 247, 0.55);
+  --theme-border-subtle: rgba(168, 85, 247, 0.20);
+  --theme-text-gradient: linear-gradient(135deg, #fae8ff 0%, #c084fc 45%, #a855f7 100%);
+  --theme-badge-bg: linear-gradient(135deg, #7e22ce 0%, #9333ea 100%);
+  --theme-chart-bar: rgba(168, 85, 247, 0.75);
+  --theme-body-text: #f3f4f6;
+  --theme-subtext: #94a3b8;
+  --theme-label-text: #cbd5e1;
+  --theme-prog-track: rgba(15, 23, 42, 0.8);
+  --theme-prog-bar: #a855f7;
+  --theme-currency-gems: #38bdf8;
+  --theme-currency-packs: #fde047;
+  --theme-currency-play: #60a5fa;
+  --theme-currency-col: #c084fc;
+}
+
+[data-theme="red"] {
+  /* 🔥 Mountain (Red Mana) - Brighter, Less Saturated Warm Terracotta & Coral Ember */
+  --theme-bg-gradient: radial-gradient(ellipse at 50% -10%, #e07a5f 0%, #9e4747 28%, #4f2121 58%, #1f0b0b 100%);
+  --theme-header-bg: rgba(48, 18, 18, 0.95);
+  --theme-panel-bg: rgba(44, 16, 16, 0.90);
+  --theme-panel-border: rgba(248, 113, 113, 0.42);
+  --theme-card-bg: rgba(68, 25, 25, 0.75);
+  --theme-card-border: rgba(248, 113, 113, 0.28);
+  --theme-input-bg: rgba(30, 10, 10, 0.95);
+  --theme-input-border: rgba(248, 113, 113, 0.50);
+  --theme-btn-secondary-bg: rgba(60, 22, 22, 0.90);
+  --theme-btn-secondary-hover: rgba(90, 32, 32, 1);
+  --theme-table-header-bg: rgba(35, 12, 12, 0.96);
+  --theme-table-row-hover: rgba(248, 113, 113, 0.22);
+  --theme-accent: #f87171;
+  --theme-accent-light: #fca5a5;
+  --theme-accent-dark: #dc2626;
+  --theme-glow: rgba(248, 113, 113, 0.50);
+  --theme-bg-glow: rgba(248, 113, 113, 0.20);
+  --theme-border: rgba(248, 113, 113, 0.65);
+  --theme-border-subtle: rgba(248, 113, 113, 0.26);
+  --theme-text-gradient: linear-gradient(135deg, #ffffff 0%, #fca5a5 45%, #f87171 100%);
+  --theme-badge-bg: linear-gradient(135deg, #e05252 0%, #f87171 100%);
+  --theme-chart-bar: rgba(248, 113, 113, 0.85);
+  --theme-body-text: #f3f4f6;
+  --theme-subtext: #94a3b8;
+  --theme-label-text: #cbd5e1;
+  --theme-prog-track: rgba(15, 23, 42, 0.8);
+  --theme-prog-bar: #f87171;
+  --theme-currency-gems: #38bdf8;
+  --theme-currency-packs: #fde047;
+  --theme-currency-play: #60a5fa;
+  --theme-currency-col: #c084fc;
+}
+
+[data-theme="green"] {
+  /* 🌳 Forest (Green Mana) - Lush Emerald Canopy & Verdant Jade Life Force */
+  --theme-bg-gradient: radial-gradient(ellipse at 50% -10%, #059669 0%, #065f46 28%, #033c2a 58%, #01160e 100%);
+  --theme-header-bg: rgba(6, 40, 26, 0.95);
+  --theme-panel-bg: rgba(6, 36, 24, 0.90);
+  --theme-panel-border: rgba(52, 211, 153, 0.48);
+  --theme-card-bg: rgba(10, 58, 38, 0.75);
+  --theme-card-border: rgba(52, 211, 153, 0.32);
+  --theme-input-bg: rgba(3, 22, 14, 0.95);
+  --theme-input-border: rgba(16, 185, 129, 0.60);
+  --theme-btn-secondary-bg: rgba(8, 48, 32, 0.90);
+  --theme-btn-secondary-hover: rgba(12, 74, 48, 1);
+  --theme-table-header-bg: rgba(4, 26, 16, 0.96);
+  --theme-table-row-hover: rgba(16, 185, 129, 0.24);
+  --theme-accent: #10b981;
+  --theme-accent-light: #34d399;
+  --theme-accent-dark: #059669;
+  --theme-glow: rgba(16, 185, 129, 0.60);
+  --theme-bg-glow: rgba(16, 185, 129, 0.25);
+  --theme-border: rgba(52, 211, 153, 0.75);
+  --theme-border-subtle: rgba(52, 211, 153, 0.32);
+  --theme-text-gradient: linear-gradient(135deg, #dcfce7 0%, #4ade80 45%, #10b981 100%);
+  --theme-badge-bg: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  --theme-chart-bar: rgba(16, 185, 129, 0.85);
+  --theme-body-text: #f3f4f6;
+  --theme-subtext: #94a3b8;
+  --theme-label-text: #cbd5e1;
+  --theme-prog-track: rgba(15, 23, 42, 0.8);
+  --theme-prog-bar: #10b981;
+  --theme-currency-gems: #38bdf8;
+  --theme-currency-packs: #fde047;
+  --theme-currency-play: #60a5fa;
+  --theme-currency-col: #c084fc;
+}
+
+[data-theme="artifact"] {
+  /* ⚙️ Artifact (Colorless Mana) - Lighter Metallic Grey / Silver Titanium */
+  --theme-bg-gradient: radial-gradient(ellipse at 50% -10%, #cbd5e1 0%, #94a3b8 28%, #475569 60%, #1e293b 100%);
+  --theme-header-bg: rgba(51, 65, 85, 0.95);
+  --theme-panel-bg: rgba(51, 65, 85, 0.90);
+  --theme-panel-border: rgba(203, 213, 225, 0.42);
+  --theme-card-bg: rgba(71, 85, 105, 0.75);
+  --theme-card-border: rgba(203, 213, 225, 0.28);
+  --theme-input-bg: rgba(30, 41, 59, 0.95);
+  --theme-input-border: rgba(148, 163, 184, 0.55);
+  --theme-btn-secondary-bg: rgba(71, 85, 105, 0.90);
+  --theme-btn-secondary-hover: rgba(100, 116, 139, 1);
+  --theme-table-header-bg: rgba(35, 48, 68, 0.96);
+  --theme-table-row-hover: rgba(203, 213, 225, 0.20);
+  --theme-accent: #cbd5e1;
+  --theme-accent-light: #ffffff;
+  --theme-accent-dark: #94a3b8;
+  --theme-glow: rgba(226, 232, 240, 0.50);
+  --theme-bg-glow: rgba(226, 232, 240, 0.20);
+  --theme-border: rgba(203, 213, 225, 0.70);
+  --theme-border-subtle: rgba(203, 213, 225, 0.28);
+  --theme-text-gradient: linear-gradient(135deg, #ffffff 0%, #e2e8f0 45%, #94a3b8 100%);
+  --theme-badge-bg: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
+  --theme-chart-bar: rgba(203, 213, 225, 0.85);
+  --theme-body-text: #f8fafc;
+  --theme-subtext: #cbd5e1;
+  --theme-label-text: #ffffff;
+  --theme-prog-track: rgba(15, 23, 42, 0.8);
+  --theme-prog-bar: #cbd5e1;
+  --theme-currency-gems: #38bdf8;
+  --theme-currency-packs: #fde047;
+  --theme-currency-play: #60a5fa;
+  --theme-currency-col: #c084fc;
+}
+
+/* Global Atmosphere */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: var(--theme-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--theme-body-text, #f3f4f6);
+  min-height: 100vh;
+  transition: background 0.4s ease-in-out, color 0.3s ease;
+}
+
+/* Header & Navigation */
+header {
+  background: var(--theme-header-bg) !important;
+  border-bottom: 1px solid var(--theme-panel-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+/* Glass Panels & Containers */
+.glass-panel {
+  background: var(--theme-panel-bg) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--theme-panel-border) !important;
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.18), 0 0 24px 0 var(--theme-bg-glow) !important;
+  transition: all 0.3s ease;
+}
+
+.glass-card {
+  background: var(--theme-card-bg) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--theme-card-border) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+/* Form Inputs, Selects & Textareas */
+input:not([type="checkbox"]),
+select,
+textarea {
+  background: var(--theme-input-bg) !important;
+  border-color: var(--theme-input-border) !important;
+  color: var(--theme-body-text, #f8fafc) !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--theme-accent) !important;
+  box-shadow: 0 0 0 2px var(--theme-border) !important;
+  outline: none !important;
+}
+
+/* Secondary & Action Buttons */
+#btn-export-json,
+#btn-import-json,
+#btn-save-as-new,
+#btn-add-win-row,
+#btn-remove-win-row,
+#modal-save-cancel,
+#modal-dist-btn-close,
+#btn-theme-shuffle,
+#theme-select,
+.btn-quick-entry,
+.btn-quick-wr,
+.btn-view-dist {
+  background: var(--theme-btn-secondary-bg) !important;
+  border: 1px solid var(--theme-border-subtle) !important;
+  color: var(--theme-body-text, #f1f5f9) !important;
+  transition: all 0.2s ease;
+}
+
+#btn-export-json:hover,
+#btn-import-json:hover,
+#btn-save-as-new:hover,
+#btn-add-win-row:hover,
+#modal-save-cancel:hover,
+#modal-dist-btn-close:hover,
+#btn-theme-shuffle:hover,
+.btn-quick-entry:hover,
+.btn-quick-wr:hover,
+.btn-view-dist:hover {
+  background: var(--theme-btn-secondary-hover) !important;
+  border-color: var(--theme-accent) !important;
+  color: var(--theme-accent-light) !important;
+  box-shadow: 0 0 12px var(--theme-bg-glow) !important;
+}
+
+#btn-remove-win-row:hover {
+  background: rgba(225, 29, 72, 0.25) !important;
+  border-color: rgba(244, 63, 94, 0.7) !important;
+  color: #fecdd3 !important;
+}
+
+/* Primary Action Buttons */
+#btn-save-preset,
+#modal-save-confirm {
+  background: var(--theme-badge-bg) !important;
+  border: 1px solid var(--theme-border) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 16px var(--theme-glow) !important;
+  transition: all 0.2s ease;
+}
+
+#btn-save-preset:hover,
+#modal-save-confirm:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 6px 24px var(--theme-glow) !important;
+  transform: translateY(-1px);
+}
+
+/* Delete Preset Button */
+#btn-delete-preset {
+  background: var(--theme-btn-secondary-bg) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+  transition: all 0.2s ease;
+}
+#btn-delete-preset:hover {
+  background: rgba(239, 68, 68, 0.20) !important;
+  border-color: #ef4444 !important;
+  color: #fee2e2 !important;
+}
+
+/* Reset Button */
+#btn-reset-all {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+  transition: all 0.2s ease;
+}
+#btn-reset-all:hover {
+  background: rgba(239, 68, 68, 0.30) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Theme-styled Containers */
+.theme-select-container,
+.bo3-container,
+.wr-input-container,
+.quick-wr-container {
+  background: var(--theme-card-bg) !important;
+  border: 1px solid var(--theme-card-border) !important;
+  color: var(--theme-body-text) !important;
+}
+
+.target-icon-box {
+  background: var(--theme-card-bg) !important;
+  border: 1px solid var(--theme-border) !important;
+  box-shadow: 0 0 14px var(--theme-bg-glow);
+}
+
+#btn-wr-minus,
+#btn-wr-plus {
+  color: var(--theme-accent) !important;
+}
+#btn-wr-minus:hover,
+#btn-wr-plus:hover {
+  color: var(--theme-accent-light) !important;
+}
+
+/* Badges & Labels */
+#event-category-badge,
+#entry-usd-equiv,
+#gem-unit-cost-label,
+#cache-status-badge,
+.badge-vertical-label {
+  background: var(--theme-card-bg) !important;
+  border: 1px solid var(--theme-border-subtle) !important;
+  color: var(--theme-accent-light) !important;
+}
+
+.badge-vertical-label {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 2px;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+#cache-status-badge {
+  box-shadow: 0 0 12px var(--theme-bg-glow);
+}
+
+/* KPI & Dynamic Text Accents */
+.theme-accent-text,
+#input-user-winrate,
+#chart-wr-label,
+#kpi-net-gems,
+.glass-panel h2 + i,
+.glass-panel i[data-lucide="swords"],
+.glass-panel i[data-lucide="table-2"],
+.glass-panel i[data-lucide="target"],
+.glass-panel i[data-lucide="trending-up"],
+.glass-panel i[data-lucide="dollar-sign"],
+.glass-panel i[data-lucide="line-chart"],
+.glass-panel i[data-lucide="bar-chart-3"] {
+  color: var(--theme-accent) !important;
+}
+
+/* Specific text color adaptation for Light Theme (Plains) */
+[data-theme="white"] .text-slate-100,
+[data-theme="white"] .text-slate-200,
+[data-theme="white"] h1,
+[data-theme="white"] h2,
+[data-theme="white"] h3 {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .text-slate-300,
+[data-theme="white"] label {
+  color: #334155 !important;
+}
+
+[data-theme="white"] .text-slate-400 {
+  color: #64748b !important;
+}
+
+[data-theme="white"] #cache-status-text {
+  color: #475569 !important;
+}
+
+[data-theme="white"] #btn-save-as-new,
+[data-theme="white"] #btn-export-json,
+[data-theme="white"] #btn-import-json,
+[data-theme="white"] #btn-add-win-row,
+[data-theme="white"] .btn-quick-entry,
+[data-theme="white"] .btn-quick-wr,
+[data-theme="white"] .btn-view-dist {
+  color: #78350f !important;
+}
+
+/* Currency text classes */
+.currency-gems { color: var(--theme-currency-gems) !important; }
+.currency-packs { color: var(--theme-currency-packs) !important; }
+.currency-play { color: var(--theme-currency-play) !important; }
+.currency-col { color: var(--theme-currency-col) !important; }
+
+/* Tables & Containers */
+.ev-table-container {
+  background: var(--theme-input-bg) !important;
+  border: 1px solid var(--theme-panel-border) !important;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-accent-dark) var(--theme-input-bg);
+}
+
+.ev-table-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.ev-table-container::-webkit-scrollbar-track {
+  background: var(--theme-input-bg);
+}
+.ev-table-container::-webkit-scrollbar-thumb {
+  background: var(--theme-btn-secondary-bg);
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: 4px;
+}
+.ev-table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-accent-dark);
+}
+
+.ev-table-container thead tr,
+.ev-table-container tr.bg-slate-900,
+#modal-distribution thead tr {
+  background: var(--theme-table-header-bg) !important;
+  border-bottom: 2px solid var(--theme-panel-border) !important;
+  color: var(--theme-accent) !important;
+}
+
+.ev-table-container thead th {
+  color: var(--theme-accent) !important;
+  letter-spacing: 0.05em;
+}
+
+.ev-table-container tbody tr {
+  border-bottom: 1px solid var(--theme-border-subtle) !important;
+  transition: background-color 0.15s ease;
+}
+
+.ev-table-container tbody tr:hover {
+  background: var(--theme-table-row-hover) !important;
+}
+
+[data-theme="white"] .ev-table-container tbody tr {
+  color: #1e293b !important;
+}
+
+/* User Win Rate Row Highlighting */
+.user-wr-row {
+  background: linear-gradient(90deg, var(--theme-bg-glow) 0%, var(--theme-card-bg) 100%) !important;
+  border-left: 4px solid var(--theme-accent) !important;
+  border-right: 4px solid var(--theme-accent) !important;
+  font-weight: 600;
+  box-shadow: inset 0 0 20px var(--theme-bg-glow);
+  position: relative;
+}
+
+.user-wr-row td {
+  border-top: 1px solid var(--theme-border) !important;
+  border-bottom: 1px solid var(--theme-border) !important;
+}
+
+.user-wr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--theme-badge-bg);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  box-shadow: 0 0 14px var(--theme-glow);
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--theme-glow);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--theme-glow);
+  }
+}
+
+/* Highlighted Net Value Column in Expected Payouts Table */
+.col-net-value-header {
+  background: linear-gradient(180deg, var(--theme-bg-glow) 0%, var(--theme-header-bg) 100%) !important;
+  border-left: 2px solid var(--theme-border) !important;
+  border-right: 2px solid var(--theme-border) !important;
+  color: var(--theme-accent) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em;
+  box-shadow: inset 0 0 16px var(--theme-bg-glow);
+}
+
+.col-net-value-cell {
+  background: var(--theme-bg-glow) !important;
+  border-left: 2px solid var(--theme-border) !important;
+  border-right: 2px solid var(--theme-border) !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+}
+
+.user-wr-row .col-net-value-cell {
+  background: var(--theme-glow) !important;
+  border-left: 2px solid var(--theme-accent) !important;
+  border-right: 2px solid var(--theme-accent) !important;
+  box-shadow: inset 0 0 24px var(--theme-glow);
+}
+
+/* Modals */
+#modal-distribution > div,
+#modal-save-as > div,
+#modal-reset-confirm > div {
+  background: var(--theme-panel-bg) !important;
+  border: 1.5px solid var(--theme-panel-border) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 35px var(--theme-bg-glow) !important;
+  backdrop-filter: blur(20px);
+}
+
+#modal-distribution .bg-slate-900\/80,
+#modal-reset-confirm .bg-slate-900\/90 {
+  background: var(--theme-card-bg) !important;
+  border-color: var(--theme-border-subtle) !important;
+}
+
+[data-theme="white"] #modal-distribution > div,
+[data-theme="white"] #modal-save-as > div,
+[data-theme="white"] #modal-reset-confirm > div {
+  color: #0f172a !important;
+}
+
+/* Value coloration */
+.val-positive {
+  color: #16a34a !important;
+  font-weight: 700;
+}
+
+.val-negative {
+  color: #dc2626 !important;
+  font-weight: 700;
+}
+
+.val-neutral {
+  color: #64748b;
+}
+
+/* Title gradient */
+.theme-title-gradient {
+  background: var(--theme-text-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Progress bar inside probability cells */
+.prob-progress-bar-track {
+  background-color: var(--theme-prog-track, rgba(15, 23, 42, 0.8)) !important;
+}
+.prob-progress-bar {
+  background-color: var(--theme-prog-bar, var(--theme-accent)) !important;
+}
+
+/* Number inputs with no spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Cute Logo Avatar Styling */
+.cute-mtg-avatar {
+  background: radial-gradient(circle at center, var(--theme-glow) 0%, var(--theme-input-bg) 80%) !important;
+  border: 2px solid var(--theme-border) !important;
+  box-shadow: 0 0 20px var(--theme-glow) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cute-mtg-avatar:hover {
+  transform: scale(1.10) rotate(4deg);
+  box-shadow: 0 0 30px var(--theme-glow) !important;
+}

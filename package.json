@@ -1,0 +1,14 @@
+{
+  "name": "mtga-ev-calc",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MTG Arena Event Expected Value (EV) and Payouts Calculator",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "dev": "python3 -m http.server 3000"
+  },
+  "keywords": ["mtga", "magic-the-gathering", "ev-calculator", "draft", "arena-direct"],
+  "author": "",
+  "license": "MIT"
+}
