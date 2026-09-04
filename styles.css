@@ -643,3 +643,27 @@ input[type="number"] {
   transform: scale(1.10) rotate(4deg);
   box-shadow: 0 0 30px var(--theme-glow) !important;
 }
+
+/* Footer Styling */
+footer {
+  background: var(--theme-header-bg) !important;
+  border-top: 1px solid var(--theme-panel-border) !important;
+  color: var(--theme-subtext) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+#footer-title {
+  color: var(--theme-body-text) !important;
+}
+
+#footer-github-link {
+  background: var(--theme-btn-secondary-bg) !important;
+  border-color: var(--theme-panel-border) !important;
+  color: var(--theme-body-text) !important;
+}
+
+#footer-github-link:hover {
+  background: var(--theme-btn-secondary-hover) !important;
+  border-color: var(--theme-border) !important;
+}
+
