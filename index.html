@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MTG Arena Event EV & Expected Payouts Calculator</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -147,6 +148,9 @@
           <button id="btn-reset-all" class="px-2.5 py-1.5 text-xs font-medium bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 hover:text-rose-100 rounded-lg border border-rose-800/40 transition flex items-center gap-1 shadow-sm" title="Reset all presets & valuations to defaults">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
             <span>Reset</span>
+          </button>
+          <button id="btn-info" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition flex items-center justify-center shadow-sm" title="About & Information" aria-label="About & Information">
+            <i data-lucide="info" class="w-3.5 h-3.5"></i>
           </button>
         </div>
 
@@ -722,6 +726,116 @@
         <button id="modal-reset-confirm-btn" class="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white rounded-xl shadow-md shadow-rose-600/30 transition flex items-center gap-1.5">
           <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
           Yes, Reset Everything
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About & Info Modal -->
+  <div id="modal-info" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-lg w-full border border-slate-700 shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="cute-mtg-avatar w-9 h-9 rounded-xl flex items-center justify-center relative shadow-md">
+            <svg class="w-6 h-6" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="modalLotusGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="var(--theme-accent-light, #22d3ee)" stop-opacity="0.95"/>
+                  <stop offset="100%" stop-color="var(--theme-accent, #06b6d4)" stop-opacity="0.25"/>
+                </radialGradient>
+                <linearGradient id="modalLotusCenter" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fef08a"/>
+                  <stop offset="50%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#ea580c"/>
+                </linearGradient>
+              </defs>
+              <path d="M24 6 C20 14 16 22 24 34 C32 22 28 14 24 6 Z" fill="url(#modalLotusGlow)" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M14 16 C10 22 12 30 22 36 C18 28 16 22 14 16 Z" fill="var(--theme-accent, #06b6d4)" fill-opacity="0.75" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1.2"/>
+              <path d="M34 16 C38 22 36 30 26 36 C30 28 32 22 34 16 Z" fill="var(--theme-accent, #06b6d4)" fill-opacity="0.75" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1.2"/>
+              <path d="M7 25 C6 31 10 37 20 38 C14 34 10 30 7 25 Z" fill="var(--theme-accent-dark, #0891b2)" fill-opacity="0.85" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1"/>
+              <path d="M41 25 C42 31 38 37 28 38 C34 34 38 30 41 25 Z" fill="var(--theme-accent-dark, #0891b2)" fill-opacity="0.85" stroke="var(--theme-accent-light, #22d3ee)" stroke-width="1"/>
+              <ellipse cx="24" cy="30" rx="6" ry="7" fill="url(#modalLotusCenter)" stroke="#fef08a" stroke-width="1"/>
+              <circle cx="21.5" cy="29" r="1.2" fill="#1e1b4b"/>
+              <circle cx="21.2" cy="28.6" r="0.4" fill="#ffffff"/>
+              <circle cx="26.5" cy="29" r="1.2" fill="#1e1b4b"/>
+              <circle cx="26.2" cy="28.6" r="0.4" fill="#ffffff"/>
+              <path d="M23 32 Q24 33.5 25 32" stroke="#1e1b4b" stroke-width="0.9" stroke-linecap="round" fill="none"/>
+              <circle cx="10" cy="11" r="1.2" fill="#fef08a" opacity="0.9"/>
+              <circle cx="38" cy="11" r="1.2" fill="#fef08a" opacity="0.9"/>
+              <circle cx="24" cy="42" r="1.2" fill="var(--theme-accent-light, #22d3ee)"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-100">About MTG Arena EV Calculator</h3>
+            <p class="text-xs text-slate-400">Open-source event expected value & payout analysis</p>
+          </div>
+        </div>
+        <button id="modal-info-close" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5 text-xs text-slate-300 leading-relaxed">
+        <p>
+          A fast, client-side calculator to model and evaluate expected returns, payout distributions, and break-even win rates for Magic: The Gathering Arena events.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800 space-y-1">
+            <div class="font-semibold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="calculator" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <span>Accurate EV Engine</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Calculates exact probability distributions for Single-game (Bo1) and Best-of-3 (Bo3) match formats.</p>
+          </div>
+
+          <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800 space-y-1">
+            <div class="font-semibold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="sliders" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Custom Valuations</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Set custom USD values for Gems, Gold, Booster Packs, Play-In Points, and Qualifier Badges.</p>
+          </div>
+
+          <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800 space-y-1">
+            <div class="font-semibold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="palette" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>MTG Land Themes</span>
+            </div>
+            <p class="text-[11px] text-slate-400">6 land mana themes (Plains, Island, Swamp, Mountain, Forest, Artifact) + random shuffle.</p>
+          </div>
+
+          <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800 space-y-1">
+            <div class="font-semibold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="hard-drive" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Auto-Saved Storage</span>
+            </div>
+            <p class="text-[11px] text-slate-400">All customizations, presets, and preferences are automatically stored in your browser cache.</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+          <div class="font-medium text-slate-300">Open Source & License</div>
+          <p>This project is open source and licensed under the <a href="https://github.com/minimapletinytools/mtga-ev-calculator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline hover:text-cyan-300">GNU General Public License v3.0 (GPL-3.0)</a>.</p>
+          <div class="pt-1.5">
+            <a href="https://github.com/minimapletinytools/mtga-ev-calculator" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition shadow-sm group">
+              <svg class="w-3.5 h-3.5 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+              </svg>
+              <span>View Source on GitHub</span>
+              <i data-lucide="external-link" class="w-3 h-3 text-slate-400"></i>
+            </a>
+          </div>
+        </div>
+
+        <p class="text-[10px] text-slate-500 italic pt-1">
+          Disclaimer: Wizards of the Coast, Magic: The Gathering, and MTG Arena are trademarks of Wizards of the Coast LLC. This calculator is an independent fan-made tool and is not affiliated with, endorsed, or sponsored by Wizards of the Coast.
+        </p>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button id="modal-info-btn-close" class="px-4 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition">
+          Close
         </button>
       </div>
     </div>

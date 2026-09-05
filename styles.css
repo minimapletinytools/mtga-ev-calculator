@@ -273,6 +273,8 @@ textarea:focus {
 #btn-remove-win-row,
 #modal-save-cancel,
 #modal-dist-btn-close,
+#modal-info-btn-close,
+#btn-info,
 #btn-theme-shuffle,
 #theme-select,
 .btn-quick-entry,
@@ -290,6 +292,8 @@ textarea:focus {
 #btn-add-win-row:hover,
 #modal-save-cancel:hover,
 #modal-dist-btn-close:hover,
+#modal-info-btn-close:hover,
+#btn-info:hover,
 #btn-theme-shuffle:hover,
 .btn-quick-entry:hover,
 .btn-quick-wr:hover,
@@ -572,7 +576,8 @@ textarea:focus {
 /* Modals */
 #modal-distribution > div,
 #modal-save-as > div,
-#modal-reset-confirm > div {
+#modal-reset-confirm > div,
+#modal-info > div {
   background: var(--theme-panel-bg) !important;
   border: 1.5px solid var(--theme-panel-border) !important;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 35px var(--theme-bg-glow) !important;
@@ -580,14 +585,17 @@ textarea:focus {
 }
 
 #modal-distribution .bg-slate-900\/80,
-#modal-reset-confirm .bg-slate-900\/90 {
+#modal-reset-confirm .bg-slate-900\/90,
+#modal-info .bg-slate-900\/80,
+#modal-info .bg-slate-900\/60 {
   background: var(--theme-card-bg) !important;
   border-color: var(--theme-border-subtle) !important;
 }
 
 [data-theme="white"] #modal-distribution > div,
 [data-theme="white"] #modal-save-as > div,
-[data-theme="white"] #modal-reset-confirm > div {
+[data-theme="white"] #modal-reset-confirm > div,
+[data-theme="white"] #modal-info > div {
   color: #0f172a !important;
 }
 

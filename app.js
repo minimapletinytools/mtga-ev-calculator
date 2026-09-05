@@ -147,10 +147,57 @@ export function setTheme(themeKey, notify = false) {
   // Update chart colors to match active theme
   updateChartThemeColors(chosen);
 
+  // Dynamically synchronize favicon with theme
+  updateFavicon(chosen);
+
   if (notify) {
     const themeName = themeKey === 'random' ? `🎲 Random (${MTG_THEMES[chosen].name})` : MTG_THEMES[chosen].name;
     showToast(`Theme: ${themeName}`, 'info');
   }
+}
+
+function updateFavicon(themeKey) {
+  const themeInfo = MTG_THEMES[themeKey] || MTG_THEMES.blue;
+  const primary = themeInfo.primary || '#06b6d4';
+  const light = themeInfo.light || '#38bdf8';
+  const dark = themeInfo.dark || '#0891b2';
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <radialGradient id="lotusGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${light}" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="${primary}" stop-opacity="0.25"/>
+    </radialGradient>
+    <linearGradient id="lotusCenter" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <path d="M24 6 C20 14 16 22 24 34 C32 22 28 14 24 6 Z" fill="url(#lotusGlow)" stroke="${light}" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M14 16 C10 22 12 30 22 36 C18 28 16 22 14 16 Z" fill="${primary}" fill-opacity="0.75" stroke="${light}" stroke-width="1.2"/>
+  <path d="M34 16 C38 22 36 30 26 36 C30 28 32 22 34 16 Z" fill="${primary}" fill-opacity="0.75" stroke="${light}" stroke-width="1.2"/>
+  <path d="M7 25 C6 31 10 37 20 38 C14 34 10 30 7 25 Z" fill="${dark}" fill-opacity="0.85" stroke="${light}" stroke-width="1"/>
+  <path d="M41 25 C42 31 38 37 28 38 C34 34 38 30 41 25 Z" fill="${dark}" fill-opacity="0.85" stroke="${light}" stroke-width="1"/>
+  <ellipse cx="24" cy="30" rx="6" ry="7" fill="url(#lotusCenter)" stroke="#fef08a" stroke-width="1"/>
+  <circle cx="21.5" cy="29" r="1.2" fill="#1e1b4b"/>
+  <circle cx="21.2" cy="28.6" r="0.4" fill="#ffffff"/>
+  <circle cx="26.5" cy="29" r="1.2" fill="#1e1b4b"/>
+  <circle cx="26.2" cy="28.6" r="0.4" fill="#ffffff"/>
+  <path d="M23 32 Q24 33.5 25 32" stroke="#1e1b4b" stroke-width="0.9" stroke-linecap="round" fill="none"/>
+  <circle cx="10" cy="11" r="1.2" fill="#fef08a" opacity="0.9"/>
+  <circle cx="38" cy="11" r="1.2" fill="#fef08a" opacity="0.9"/>
+  <circle cx="24" cy="42" r="1.2" fill="${light}"/>
+</svg>`;
+
+  let link = document.querySelector("link[rel~='icon']");
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.type = 'image/svg+xml';
+  link.href = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 function updateChartThemeColors(themeKey) {
@@ -1128,6 +1175,19 @@ function hideDistributionModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+function openInfoModal() {
+  const modal = document.getElementById('modal-info');
+  if (modal) {
+    modal.classList.remove('hidden');
+    refreshIcons();
+  }
+}
+
+function hideInfoModal() {
+  const modal = document.getElementById('modal-info');
+  if (modal) modal.classList.add('hidden');
+}
+
 // --- Presets Management ---
 
 function selectPreset(presetId) {
@@ -1595,6 +1655,34 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Info modal handlers
+  const btnInfo = document.getElementById('btn-info');
+  if (btnInfo) btnInfo.addEventListener('click', openInfoModal);
+
+  const modalInfoClose = document.getElementById('modal-info-close');
+  if (modalInfoClose) modalInfoClose.addEventListener('click', hideInfoModal);
+
+  const modalInfoBtnClose = document.getElementById('modal-info-btn-close');
+  if (modalInfoBtnClose) modalInfoBtnClose.addEventListener('click', hideInfoModal);
+
+  // Close modals on clicking background backdrop or pressing Escape
+  window.addEventListener('click', (e) => {
+    ['modal-distribution', 'modal-save-as', 'modal-reset-confirm', 'modal-info'].forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal && e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      ['modal-distribution', 'modal-save-as', 'modal-reset-confirm', 'modal-info'].forEach(id => {
+        document.getElementById(id)?.classList.add('hidden');
+      });
+    }
+  });
 }
 
 // Start application when DOM is ready
