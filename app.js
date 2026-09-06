@@ -10,7 +10,9 @@ import {
   findBreakEvenWinRates,
   calculateWinDistribution,
   hasNonLinearGemPayout,
-  getDefaultQuitWins
+  getDefaultQuitWins,
+  getEventBaseline,
+  getEffectiveReward
 } from './calculator.js';
 
 // MTG Color Theme Definitions
@@ -262,6 +264,10 @@ function init() {
   } else {
     const initialEvent = STATE.allEvents.find(e => e.id === lastEventId) || STATE.allEvents[0];
     STATE.currentEvent = JSON.parse(JSON.stringify(initialEvent));
+  }
+
+  if (STATE.currentEvent && !STATE.currentEvent.baseline) {
+    STATE.currentEvent.baseline = getEventBaseline(STATE.currentEvent);
   }
 
   if (hasNonLinearGemPayout(STATE.currentEvent)) {
@@ -548,6 +554,7 @@ function renderValuations() {
   const playBoxPriceInput = document.getElementById('val-playbox-price');
   const colBoxPriceInput = document.getElementById('val-collectorbox-price');
   const otherPriceInput = document.getElementById('val-other-price');
+  const gameTimeInput = document.getElementById('val-game-time');
   const gemUnitLabel = document.getElementById('gem-unit-cost-label');
   const entryEquivLabel = document.getElementById('entry-usd-equiv');
   const summaryEntryUSD = document.getElementById('summary-entry-usd');
@@ -558,6 +565,7 @@ function renderValuations() {
   if (playBoxPriceInput && document.activeElement !== playBoxPriceInput) playBoxPriceInput.value = STATE.valuations.playBoxValue;
   if (colBoxPriceInput && document.activeElement !== colBoxPriceInput) colBoxPriceInput.value = STATE.valuations.collectorBoxValue;
   if (otherPriceInput && document.activeElement !== otherPriceInput) otherPriceInput.value = STATE.valuations.otherValue;
+  if (gameTimeInput && document.activeElement !== gameTimeInput) gameTimeInput.value = STATE.valuations.avgGameTimeMinutes !== undefined ? STATE.valuations.avgGameTimeMinutes : 20;
 
   const gemUnitRate = STATE.valuations.gemsBundlePrice / (STATE.valuations.gemsBundleAmount || 20000);
   if (gemUnitLabel) {
@@ -578,6 +586,7 @@ function syncValuationsFromForm() {
   const playBoxPriceInput = document.getElementById('val-playbox-price');
   const colBoxPriceInput = document.getElementById('val-collectorbox-price');
   const otherPriceInput = document.getElementById('val-other-price');
+  const gameTimeInput = document.getElementById('val-game-time');
 
   STATE.valuations.gemsBundlePrice = Math.max(0.01, parseFloat(gemPriceInput?.value) || 100);
   STATE.valuations.gemsBundleAmount = Math.max(1, parseInt(gemAmountInput?.value) || 20000);
@@ -585,9 +594,11 @@ function syncValuationsFromForm() {
   STATE.valuations.playBoxValue = Math.max(0, parseFloat(playBoxPriceInput?.value) || 0);
   STATE.valuations.collectorBoxValue = Math.max(0, parseFloat(colBoxPriceInput?.value) || 0);
   STATE.valuations.otherValue = Math.max(0, parseFloat(otherPriceInput?.value) || 0);
+  STATE.valuations.avgGameTimeMinutes = Math.max(1, parseFloat(gameTimeInput?.value) || 20);
 
   saveValuationsToStorage();
   renderValuations();
+  updateAllRewardRowsVisuals();
   triggerAutoSave();
 }
 
@@ -600,7 +611,58 @@ function renderRewardsTable() {
   tbody.innerHTML = '';
   adjustRewardsArrayToMaxWins();
 
-  // Compute distribution at current user win rate for probability column
+  if (!STATE.currentEvent.baseline) {
+    STATE.currentEvent.baseline = getEventBaseline(STATE.currentEvent);
+  }
+  const baseline = STATE.currentEvent.baseline;
+
+  // 1. Render Baseline Row at the top
+  const baselineUSD = calculateRewardUSD(baseline, STATE.valuations);
+  const baselineTr = document.createElement('tr');
+  baselineTr.id = 'reward-row-baseline';
+  baselineTr.className = 'baseline-reward-row font-mono';
+  baselineTr.innerHTML = `
+    <td class="py-2.5 px-2.5 font-semibold">
+      <div class="flex items-center gap-1.5">
+        <span class="baseline-icon-box inline-flex items-center justify-center w-5 h-5 rounded-md text-xs font-bold shrink-0">🎁</span>
+        <div class="flex flex-col leading-tight">
+          <span class="baseline-title text-xs">Baseline</span>
+          <span class="baseline-subtitle text-[10px] whitespace-nowrap">(added to all tiers)</span>
+        </div>
+      </div>
+    </td>
+    <td class="py-2 px-1.5">
+      <input type="number" step="50" min="0" data-field="gems" class="baseline-input w-20 sm:w-24 bg-slate-950/90 text-cyan-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-cyan-500 outline-none text-xs" value="${baseline.gems || 0}">
+    </td>
+    <td class="py-2 px-1.5">
+      <input type="number" step="0.1" min="0" data-field="packs" class="baseline-input w-16 sm:w-20 bg-slate-950/90 text-amber-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-amber-500 outline-none text-xs" value="${baseline.packs || 0}">
+    </td>
+    <td class="py-2 px-1.5">
+      <input type="number" step="1" min="0" data-field="playBoxes" class="baseline-input w-16 sm:w-20 bg-slate-950/90 text-blue-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-blue-500 outline-none text-xs" value="${baseline.playBoxes || 0}">
+    </td>
+    <td class="py-2 px-1.5">
+      <input type="number" step="1" min="0" data-field="collectorBoxes" class="baseline-input w-16 sm:w-20 bg-slate-950/90 text-purple-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-purple-500 outline-none text-xs" value="${baseline.collectorBoxes || 0}">
+    </td>
+    <td class="py-2 px-1.5">
+      <input type="number" step="1" min="0" data-field="other" class="baseline-input w-16 sm:w-20 bg-slate-950/90 text-emerald-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-emerald-500 outline-none text-xs" value="${baseline.other || 0}">
+    </td>
+    <td class="baseline-usd-val py-2 px-2.5 text-right font-bold font-mono text-slate-100 text-xs">
+      $${baselineUSD.toFixed(2)}
+    </td>
+    <td class="py-2 px-2.5 text-right">
+      <span class="baseline-all-tiers-badge inline-block text-[11px] font-semibold px-2 py-0.5 rounded-md">
+        All tiers (100%)
+      </span>
+    </td>
+  `;
+  tbody.appendChild(baselineTr);
+
+  // Attach event listeners to baseline inputs
+  baselineTr.querySelectorAll('.baseline-input').forEach(input => {
+    input.addEventListener('input', handleBaselineInputChange);
+  });
+
+  // 2. Compute distribution at current user win rate for probability column
   const winRate = STATE.userWinRate / 100;
   let effectiveWinRate = winRate;
   if (STATE.currentEvent.isBo3 && STATE.isGameWinRateForBo3) {
@@ -631,7 +693,8 @@ function renderRewardsTable() {
     const isTrophy = (reward.wins === STATE.currentEvent.maxWins);
     const prob = probMap.get(reward.wins) || 0;
     const probPct = (prob * 100).toFixed(1);
-    const tierUSD = calculateRewardUSD(reward, STATE.valuations);
+    const effectiveReward = getEffectiveReward(reward, baseline);
+    const tierUSD = calculateRewardUSD(effectiveReward, STATE.valuations);
 
     tr.innerHTML = `
       <td class="py-2 px-2.5 font-semibold text-slate-200">
@@ -682,9 +745,46 @@ function updateRewardRowVisuals(win) {
   if (!row || !STATE.currentEvent || !STATE.currentEvent.rewards[win]) return;
 
   const reward = STATE.currentEvent.rewards[win];
-  const tierUSD = calculateRewardUSD(reward, STATE.valuations);
+  const baseline = getEventBaseline(STATE.currentEvent);
+  const effectiveReward = getEffectiveReward(reward, baseline);
+  const tierUSD = calculateRewardUSD(effectiveReward, STATE.valuations);
   const usdCell = row.querySelector('.tier-usd-val');
   if (usdCell) usdCell.textContent = `$${tierUSD.toFixed(2)}`;
+}
+
+function updateBaselineRowVisuals() {
+  const row = document.getElementById('reward-row-baseline');
+  if (!row || !STATE.currentEvent) return;
+
+  const baseline = getEventBaseline(STATE.currentEvent);
+  const baselineUSD = calculateRewardUSD(baseline, STATE.valuations);
+  const usdCell = row.querySelector('.baseline-usd-val');
+  if (usdCell) usdCell.textContent = `$${baselineUSD.toFixed(2)}`;
+}
+
+function updateAllRewardRowsVisuals() {
+  updateBaselineRowVisuals();
+  if (STATE.currentEvent?.rewards) {
+    for (let w = 0; w < STATE.currentEvent.rewards.length; w++) {
+      updateRewardRowVisuals(w);
+    }
+  }
+}
+
+function handleBaselineInputChange(e) {
+  const input = e.target;
+  const field = input.getAttribute('data-field');
+  const val = parseFloat(input.value) || 0;
+
+  if (STATE.currentEvent) {
+    if (!STATE.currentEvent.baseline) {
+      STATE.currentEvent.baseline = getEventBaseline(STATE.currentEvent);
+    }
+    STATE.currentEvent.baseline[field] = val;
+    updateAllRewardRowsVisuals();
+    updateAllCalculationsWithoutRecreatingRewards();
+    triggerAutoSave();
+  }
 }
 
 function handleRewardInputChange(e) {
@@ -795,7 +895,8 @@ function renderSummaryKPIs() {
     kpiNetUSD.className = `text-xl font-bold font-mono ${isPos ? 'val-positive' : 'val-negative'}`;
   }
   if (kpiGrossUSD) {
-    kpiGrossUSD.textContent = `Gross: $${ev.expGrossUSD.toFixed(2)}`;
+    const hrStr = `${ev.expUSDPerHour >= 0 ? '+' : ''}$${ev.expUSDPerHour.toFixed(2)}/hr`;
+    kpiGrossUSD.textContent = `Gross: $${ev.expGrossUSD.toFixed(2)} • ${hrStr}`;
   }
 
   // Net Gems
@@ -878,7 +979,7 @@ function renderExpectedPayoutsTable() {
   const hasCollectorBoxes = rewards.some(r => (r.collectorBoxes || 0) > 0);
   const hasOther = rewards.some(r => (r.other || 0) > 0);
 
-  // Render Table Header with Highlighted Net Value column and dynamic reward columns
+  // Render Table Header with Highlighted Net Value column, USD/hr, and dynamic reward columns
   if (thead) {
     thead.innerHTML = `
       <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
@@ -888,6 +989,7 @@ function renderExpectedPayoutsTable() {
             <span class="text-cyan-300">★ Net Value ($)</span>
           </div>
         </th>
+        <th class="py-3 px-3 text-right text-emerald-400">USD/hr</th>
         <th class="py-3 px-3 text-right">Gross Value ($)</th>
         <th class="py-3 px-3 text-right">Net Gems</th>
         <th class="py-3 px-3 text-right">Gross Gems</th>
@@ -919,6 +1021,7 @@ function renderExpectedPayoutsTable() {
     tr.className = `transition ${isUserWR ? 'user-wr-row' : 'hover:bg-slate-800/40'} border-b border-slate-800/60`;
 
     const netUSDPos = ev.expNetUSD >= 0;
+    const usdPerHourPos = ev.expUSDPerHour >= 0;
     const netGemsPos = ev.expNetGems >= 0;
     const roiPos = ev.roiPct >= 0;
 
@@ -938,6 +1041,9 @@ function renderExpectedPayoutsTable() {
       </td>
       <td class="col-net-value-cell py-2.5 px-3 text-right ${netUSDPos ? 'val-positive' : 'val-negative'}">
         ${netUSDPos ? '+' : ''}$${ev.expNetUSD.toFixed(2)}
+      </td>
+      <td class="py-2.5 px-3 text-right font-semibold font-mono ${usdPerHourPos ? 'val-positive' : 'val-negative'}">
+        ${usdPerHourPos ? '+' : ''}$${ev.expUSDPerHour.toFixed(2)}/hr
       </td>
       <td class="py-2.5 px-3 text-right text-slate-200">
         $${ev.expGrossUSD.toFixed(2)}
@@ -1229,10 +1335,12 @@ function showDistributionModal(winRatePct) {
 
   const rewardsMap = new Map();
   (STATE.currentEvent.rewards || []).forEach(r => rewardsMap.set(r.wins, r));
+  const baseline = getEventBaseline(STATE.currentEvent);
 
   distribution.forEach(d => {
     const r = rewardsMap.get(d.wins) || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
-    const tierUSD = calculateRewardUSD(r, STATE.valuations);
+    const effectiveReward = getEffectiveReward(r, baseline);
+    const tierUSD = calculateRewardUSD(effectiveReward, STATE.valuations);
     const atLeastChance = (cumulativeMap.get(d.wins) * 100).toFixed(1);
     const exactChance = (d.probability * 100).toFixed(1);
 
@@ -1288,6 +1396,9 @@ function selectPreset(presetId) {
   if (!found) return;
 
   STATE.currentEvent = JSON.parse(JSON.stringify(found));
+  if (!STATE.currentEvent.baseline) {
+    STATE.currentEvent.baseline = getEventBaseline(STATE.currentEvent);
+  }
   localStorage.setItem(STORAGE_KEYS.LAST_EVENT_ID, found.id);
 
   if (hasNonLinearGemPayout(STATE.currentEvent)) {
@@ -1314,6 +1425,7 @@ function createNewCustomEvent() {
     maxLosses: 2,
     formatType: 'elimination',
     isBo3: false,
+    baseline: { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 100, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -1459,7 +1571,10 @@ function importJSON(file) {
         saveValuationsToStorage();
       }
       if (Array.isArray(data.customPresets)) {
-        STATE.customPresets = data.customPresets;
+        STATE.customPresets = data.customPresets.map(cp => ({
+          ...cp,
+          baseline: cp.baseline || getEventBaseline(cp)
+        }));
         saveCustomPresetsToStorage();
       }
       if (typeof data.userWinRate === 'number') {
@@ -1472,7 +1587,10 @@ function importJSON(file) {
       buildEventsList();
       renderPresetDropdown();
       if (data.currentEvent) {
-        STATE.currentEvent = data.currentEvent;
+        STATE.currentEvent = {
+          ...data.currentEvent,
+          baseline: data.currentEvent.baseline || getEventBaseline(data.currentEvent)
+        };
         syncCurrentEventToForm();
       } else {
         selectPreset(STATE.allEvents[0].id);
@@ -1627,7 +1745,7 @@ function setupEventListeners() {
   if (btnDistBtnClose) btnDistBtnClose.addEventListener('click', hideDistributionModal);
 
   // Valuations inputs change
-  ['val-gem-price', 'val-gem-amount', 'val-pack-price', 'val-playbox-price', 'val-collectorbox-price', 'val-other-price'].forEach(id => {
+  ['val-gem-price', 'val-gem-amount', 'val-pack-price', 'val-playbox-price', 'val-collectorbox-price', 'val-other-price', 'val-game-time'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('input', () => {

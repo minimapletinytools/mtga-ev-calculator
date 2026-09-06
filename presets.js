@@ -8,6 +8,7 @@ export const DEFAULT_VALUATIONS = {
   playBoxValue: 100.00,      // $100 USD
   collectorBoxValue: 400.00, // $400 USD
   otherValue: 0.00,          // $0 USD
+  avgGameTimeMinutes: 20,    // 20 minutes per game/match
 };
 
 export const PRESET_EVENTS = [
@@ -22,6 +23,7 @@ export const PRESET_EVENTS = [
     maxLosses: 2,
     formatType: 'elimination', // 'elimination' (X losses or max wins) or 'fixed_matches' (fixed round count)
     isBo3: false,
+    baseline: { gems: 0, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -44,6 +46,7 @@ export const PRESET_EVENTS = [
     maxLosses: 2,
     formatType: 'elimination',
     isBo3: false,
+    baseline: { gems: 0, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -66,6 +69,7 @@ export const PRESET_EVENTS = [
     maxLosses: 3,
     formatType: 'elimination',
     isBo3: false,
+    baseline: { gems: 0, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 50, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 100, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -75,6 +79,26 @@ export const PRESET_EVENTS = [
       { wins: 5, gems: 1600, packs: 4, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 6, gems: 1800, packs: 5, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 7, gems: 2200, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 }
+    ]
+  },
+  {
+    id: 'pick_two_draft',
+    name: 'Pick 2 Draft (Bo1)',
+    category: 'Limited Draft',
+    description: 'Pick 2 Draft (Bo1). Entry: 900 Gems / 6,000 Gold. Play until 4 wins or 2 losses.',
+    entryGems: 900,
+    entryUSD: 0,
+    maxWins: 4,
+    maxLosses: 2,
+    formatType: 'elimination',
+    isBo3: false,
+    baseline: { gems: 0, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
+    rewards: [
+      { wins: 0, gems: 50, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 1, gems: 150, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 2, gems: 800, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 3, gems: 1000, packs: 2, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 4, gems: 1300, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 }
     ]
   },
   {
@@ -88,6 +112,7 @@ export const PRESET_EVENTS = [
     maxLosses: 3,
     formatType: 'elimination',
     isBo3: false,
+    baseline: { gems: 0, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 50, packs: 1.2, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 100, packs: 1.22, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -110,6 +135,7 @@ export const PRESET_EVENTS = [
     maxLosses: 3,
     formatType: 'fixed_matches',
     isBo3: true,
+    baseline: { gems: 0, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 100, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 250, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -128,6 +154,7 @@ export const PRESET_EVENTS = [
     maxLosses: 3,
     formatType: 'elimination',
     isBo3: false,
+    baseline: { gems: 0, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 200, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 400, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -150,6 +177,7 @@ export const PRESET_EVENTS = [
     maxLosses: 4,
     formatType: 'fixed_matches',
     isBo3: true,
+    baseline: { gems: 0, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 200, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 500, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -169,6 +197,7 @@ export const PRESET_EVENTS = [
     maxLosses: 3,
     formatType: 'elimination',
     isBo3: false,
+    baseline: { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 25, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 50, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
@@ -191,6 +220,7 @@ export const PRESET_EVENTS = [
     maxLosses: 2,
     formatType: 'elimination',
     isBo3: true,
+    baseline: { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
       { wins: 0, gems: 50, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
       { wins: 1, gems: 100, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },

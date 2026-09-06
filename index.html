@@ -219,6 +219,7 @@
                 <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition" data-gems="8000">8k (Direct)</button>
                 <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="2000">2k (Sealed)</button>
                 <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="1500">1.5k (Draft)</button>
+                <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="900">900 (Pick 2)</button>
                 <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="750">750 (Quick)</button>
                 <button type="button" class="btn-quick-entry px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-gems="375">375 (Const)</button>
               </div>
@@ -382,6 +383,21 @@
                 </div>
                 <span class="text-[10px] text-slate-400 block mt-1">Default: $0.00</span>
               </div>
+
+              <!-- Avg Game Time (mins) -->
+              <div class="glass-card rounded-xl p-2.5 border border-slate-700/60 sm:col-span-2">
+                <div class="flex items-center justify-between mb-1">
+                  <label for="val-game-time" class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                    <span class="text-cyan-400">⏱️ Avg Game Time</span>
+                  </label>
+                  <span class="text-[10px] text-slate-400">Used for USD/hr</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="val-game-time" min="1" max="180" step="1" class="w-full bg-slate-900/90 text-slate-100 rounded-lg pl-3 pr-14 py-1.5 text-xs border border-slate-700 focus:border-cyan-500 font-mono" value="20">
+                  <span class="absolute right-2.5 top-1.5 text-slate-400 font-mono text-xs">mins</span>
+                </div>
+                <span class="text-[10px] text-slate-400 block mt-1">Default: 20 mins per game/match</span>
+              </div>
             </div>
           </div>
         </div>
@@ -401,7 +417,7 @@
           <i data-lucide="table-2" class="w-5 h-5 text-indigo-400"></i>
           <div>
             <h2 class="text-base font-semibold text-slate-100">Event Rewards by Win Tier</h2>
-            <p class="text-xs text-slate-400">Fill out or customize rewards for each win count. Changes update calculations live.</p>
+            <p class="text-xs text-slate-400">Fill out or customize baseline pool and rewards for each win count. Changes update calculations live.</p>
           </div>
         </div>
 
@@ -422,7 +438,7 @@
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
-              <th class="py-2.5 px-3 w-20">Wins</th>
+              <th class="py-2.5 px-3 min-w-[130px] sm:w-44">Tier / Baseline</th>
               <th class="py-2.5 px-2.5">Gems (💎)</th>
               <th class="py-2.5 px-2.5">Packs (🎴)</th>
               <th class="py-2.5 px-2.5">Play Boxes (📦)</th>

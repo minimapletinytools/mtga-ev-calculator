@@ -198,6 +198,48 @@ export function calculateWinDistribution(maxWins, maxLosses, formatType, effecti
 }
 
 /**
+ * Retrieves the baseline reward object for an event (packs, gems, etc. given to all participants)
+ */
+export function getEventBaseline(eventConfig) {
+  if (eventConfig && eventConfig.baseline) {
+    return {
+      gems: eventConfig.baseline.gems || 0,
+      packs: eventConfig.baseline.packs || 0,
+      playBoxes: eventConfig.baseline.playBoxes || 0,
+      collectorBoxes: eventConfig.baseline.collectorBoxes || 0,
+      other: eventConfig.baseline.other || 0
+    };
+  }
+  // Default fallbacks based on category/name if not explicitly set
+  if (eventConfig?.category === 'Arena Direct' || eventConfig?.id?.includes('arena_direct')) {
+    return { gems: 0, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 };
+  }
+  if (eventConfig?.category === 'Limited Sealed' || eventConfig?.id?.includes('sealed')) {
+    return { gems: 0, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 };
+  }
+  if (eventConfig?.category === 'Limited Draft' || eventConfig?.id?.includes('draft')) {
+    return { gems: 0, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 };
+  }
+  return { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+}
+
+/**
+ * Combines tier-specific rewards with the baseline rewards
+ */
+export function getEffectiveReward(reward, baseline) {
+  const b = baseline || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+  const r = reward || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+  return {
+    wins: r.wins !== undefined ? r.wins : 0,
+    gems: (r.gems || 0) + (b.gems || 0),
+    packs: (r.packs || 0) + (b.packs || 0),
+    playBoxes: (r.playBoxes || 0) + (b.playBoxes || 0),
+    collectorBoxes: (r.collectorBoxes || 0) + (b.collectorBoxes || 0),
+    other: (r.other || 0) + (b.other || 0)
+  };
+}
+
+/**
  * Calculates valuation for a single reward tier in USD
  */
 export function calculateRewardUSD(reward, valuations) {
@@ -245,6 +287,7 @@ export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRat
   const gemUnitRate = valuations.gemsBundlePrice / (valuations.gemsBundleAmount || 20000);
   const entryFeeUSD = calculateEntryFeeUSD(eventConfig, valuations);
   const entryGems = eventConfig.entryGems || 0;
+  const baseline = getEventBaseline(eventConfig);
 
   let expGems = 0;
   let expPacks = 0;
@@ -264,13 +307,14 @@ export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRat
 
   distribution.forEach(item => {
     const r = rewardsMap.get(item.wins) || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
-    const tierGrossUSD = calculateRewardUSD(r, valuations);
+    const effectiveReward = getEffectiveReward(r, baseline);
+    const tierGrossUSD = calculateRewardUSD(effectiveReward, valuations);
     
-    expGems += item.probability * (r.gems || 0);
-    expPacks += item.probability * (r.packs || 0);
-    expPlayBoxes += item.probability * (r.playBoxes || 0);
-    expCollectorBoxes += item.probability * (r.collectorBoxes || 0);
-    expOther += item.probability * (r.other || 0);
+    expGems += item.probability * (effectiveReward.gems || 0);
+    expPacks += item.probability * (effectiveReward.packs || 0);
+    expPlayBoxes += item.probability * (effectiveReward.playBoxes || 0);
+    expCollectorBoxes += item.probability * (effectiveReward.collectorBoxes || 0);
+    expOther += item.probability * (effectiveReward.other || 0);
     expGrossUSD += item.probability * tierGrossUSD;
     expTotalGames += item.probability * item.expectedGames;
 
@@ -287,6 +331,12 @@ export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRat
   const roiPct = entryFeeUSD > 0 ? (expNetUSD / entryFeeUSD) * 100 : 0;
   const gemReturnPct = entryGems > 0 ? (expGems / entryGems) * 100 : 0;
 
+  const avgGameTime = (valuations && valuations.avgGameTimeMinutes !== undefined && !isNaN(valuations.avgGameTimeMinutes))
+    ? Math.max(1, valuations.avgGameTimeMinutes)
+    : 20;
+  const expDurationHours = (expTotalGames * avgGameTime) / 60;
+  const expUSDPerHour = expDurationHours > 0 ? (expNetUSD / expDurationHours) : 0;
+
   return {
     winRatePct,
     effectiveWinRatePct: effectiveWinRate * 100,
@@ -294,6 +344,8 @@ export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRat
     entryGems,
     expGrossUSD,
     expNetUSD,
+    expUSDPerHour,
+    expDurationHours,
     expGems,
     expNetGems,
     expPacks,

@@ -508,6 +508,68 @@ textarea:focus {
   color: #1e293b !important;
 }
 
+/* Baseline Reward Row Highlighting & Theme Typography */
+.baseline-reward-row {
+  background: linear-gradient(90deg, var(--theme-bg-glow) 0%, rgba(245, 158, 11, 0.04) 50%, transparent 100%) !important;
+  border-bottom: 2px solid var(--theme-border) !important;
+  box-shadow: inset 0 0 16px var(--theme-bg-glow);
+}
+
+.baseline-reward-row:hover {
+  background: linear-gradient(90deg, var(--theme-glow) 0%, var(--theme-bg-glow) 50%, var(--theme-table-row-hover) 100%) !important;
+}
+
+.baseline-title {
+  color: var(--theme-body-text, #f8fafc) !important;
+  font-weight: 700;
+}
+
+.baseline-subtitle {
+  color: var(--theme-accent-light, #38bdf8) !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.baseline-icon-box {
+  background: var(--theme-card-bg) !important;
+  border: 1px solid var(--theme-border-subtle) !important;
+  box-shadow: 0 0 10px var(--theme-bg-glow);
+}
+
+.baseline-all-tiers-badge {
+  background: var(--theme-btn-secondary-bg) !important;
+  border: 1px solid var(--theme-border-subtle) !important;
+  color: var(--theme-body-text) !important;
+}
+
+[data-theme="white"] .baseline-reward-row {
+  background: linear-gradient(90deg, rgba(217, 119, 6, 0.16) 0%, rgba(217, 119, 6, 0.08) 50%, transparent 100%) !important;
+  border-bottom: 2px solid rgba(217, 119, 6, 0.5) !important;
+}
+
+[data-theme="white"] .baseline-reward-row:hover {
+  background: linear-gradient(90deg, rgba(217, 119, 6, 0.24) 0%, rgba(217, 119, 6, 0.14) 50%, rgba(254, 243, 199, 0.6) 100%) !important;
+}
+
+[data-theme="white"] .baseline-title {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .baseline-subtitle {
+  color: #92400e !important; /* Deep, clear Amber/Brown for crisp Plains visibility */
+}
+
+[data-theme="white"] .baseline-all-tiers-badge {
+  background: #fef3c7 !important;
+  border-color: rgba(217, 119, 6, 0.4) !important;
+  color: #78350f !important;
+}
+
+.baseline-input:focus {
+  border-color: var(--theme-accent) !important;
+  box-shadow: 0 0 0 2px var(--theme-border) !important;
+}
+
 /* User Win Rate Row Highlighting */
 .user-wr-row {
   background: linear-gradient(90deg, var(--theme-bg-glow) 0%, var(--theme-card-bg) 100%) !important;
