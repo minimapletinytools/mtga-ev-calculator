@@ -47,17 +47,67 @@ export function matchWinRateToGameWinRate(matchWinRate) {
 }
 
 /**
+ * Checks if an event's gem rewards do not scale monotonically/linearly with # of wins
+ * (e.g. Arena Direct where gem payouts peak and then drop to 0 at higher tiers).
+ */
+export function hasNonLinearGemPayout(eventConfig) {
+  if (!eventConfig || !eventConfig.rewards || eventConfig.rewards.length < 2) return false;
+  
+  if (eventConfig.id === 'arena_direct_play' || eventConfig.id === 'arena_direct_collector') {
+    return true;
+  }
+
+  const rewards = eventConfig.rewards;
+  let maxGemSoFar = -1;
+  for (let i = 0; i < rewards.length; i++) {
+    const g = rewards[i].gems || 0;
+    if (g < maxGemSoFar) {
+      return true;
+    }
+    if (g > maxGemSoFar) {
+      maxGemSoFar = g;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Returns the default win tier to quit at for non-linear gem payout events
+ * (5 for Play Box, 6 for Collector Box, or the peak gem tier).
+ */
+export function getDefaultQuitWins(eventConfig) {
+  if (!eventConfig) return 5;
+  if (eventConfig.id === 'arena_direct_play') return 5;
+  if (eventConfig.id === 'arena_direct_collector') return 6;
+
+  const rewards = eventConfig.rewards || [];
+  let maxGems = -1;
+  let peakWin = 5;
+  for (let i = 0; i < rewards.length; i++) {
+    const g = rewards[i].gems || 0;
+    if (g > maxGems) {
+      maxGems = g;
+      peakWin = rewards[i].wins !== undefined ? rewards[i].wins : i;
+    }
+  }
+  return peakWin;
+}
+
+/**
  * Calculate win probabilities for each win count (0 .. maxWins)
  * @param {number} maxWins - Maximum wins (e.g. 7, 3, 5)
  * @param {number} maxLosses - Maximum losses before elimination (e.g. 3, 2)
  * @param {string} formatType - 'elimination' or 'fixed_matches'
  * @param {number} effectiveWinRate - Win probability between 0 and 1
+ * @param {number|null} padUpToMaxWins - Optional target win count to pad 0-probability rows up to
  * @returns {Array<{ wins: number, probability: number, expectedGames: number }>}
  */
-export function calculateWinDistribution(maxWins, maxLosses, formatType, effectiveWinRate) {
+export function calculateWinDistribution(maxWins, maxLosses, formatType, effectiveWinRate, padUpToMaxWins = null) {
   const p = Math.max(0, Math.min(1, effectiveWinRate));
   const q = 1 - p;
   const distribution = [];
+  const targetPad = padUpToMaxWins !== null ? Math.max(maxWins, padUpToMaxWins) : maxWins;
 
   if (formatType === 'fixed_matches') {
     const M = maxWins;
@@ -74,6 +124,13 @@ export function calculateWinDistribution(maxWins, maxLosses, formatType, effecti
         wins: w,
         probability: prob,
         expectedGames: M
+      });
+    }
+    for (let w = M + 1; w <= targetPad; w++) {
+      distribution.push({
+        wins: w,
+        probability: 0,
+        expectedGames: 0
       });
     }
     return distribution;
@@ -128,6 +185,15 @@ export function calculateWinDistribution(maxWins, maxLosses, formatType, effecti
     expectedGames: maxWinsProb > 0 ? (maxWinsWeightedGames / maxWinsProb) : W
   });
 
+  // Pad remaining wins up to targetPad with 0 probability
+  for (let w = W + 1; w <= targetPad; w++) {
+    distribution.push({
+      wins: w,
+      probability: 0,
+      expectedGames: 0
+    });
+  }
+
   return distribution;
 }
 
@@ -155,20 +221,25 @@ export function calculateEntryFeeUSD(eventConfig, valuations) {
 }
 
 /**
- * Compute detailed EV metrics for a given win rate
+ * Compute detailed EV metrics for a given win rate, optionally supporting early quitting strategy
  */
-export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRateForBo3 = true) {
+export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRateForBo3 = true, quitEarlyWins = null) {
   const winRate = winRatePct / 100;
   let effectiveWinRate = winRate;
   if (eventConfig.isBo3 && isGameWinRateForBo3) {
     effectiveWinRate = gameWinRateToMatchWinRate(winRate);
   }
 
+  const effectiveMaxWins = (quitEarlyWins !== null && quitEarlyWins !== undefined && quitEarlyWins > 0 && quitEarlyWins < eventConfig.maxWins)
+    ? quitEarlyWins
+    : eventConfig.maxWins;
+
   const distribution = calculateWinDistribution(
-    eventConfig.maxWins,
+    effectiveMaxWins,
     eventConfig.maxLosses,
     eventConfig.formatType,
-    effectiveWinRate
+    effectiveWinRate,
+    eventConfig.maxWins
   );
 
   const gemUnitRate = valuations.gemsBundlePrice / (valuations.gemsBundleAmount || 20000);
@@ -241,18 +312,18 @@ export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRat
 /**
  * Find Break-Even Win Rate (Net USD = 0) and Infinite Gems Win Rate (Net Gems = 0)
  */
-export function findBreakEvenWinRates(eventConfig, valuations, isGameWinRateForBo3 = true) {
+export function findBreakEvenWinRates(eventConfig, valuations, isGameWinRateForBo3 = true, quitEarlyWins = null) {
   let low = 0, high = 100;
   let breakEvenUSD = null;
 
   // Binary search for Net USD == 0
-  const ev0 = computeEventEV(eventConfig, valuations, 0, isGameWinRateForBo3).expNetUSD;
-  const ev100 = computeEventEV(eventConfig, valuations, 100, isGameWinRateForBo3).expNetUSD;
+  const ev0 = computeEventEV(eventConfig, valuations, 0, isGameWinRateForBo3, quitEarlyWins).expNetUSD;
+  const ev100 = computeEventEV(eventConfig, valuations, 100, isGameWinRateForBo3, quitEarlyWins).expNetUSD;
 
   if (ev0 <= 0 && ev100 >= 0) {
     for (let i = 0; i < 40; i++) {
       const mid = (low + high) / 2;
-      const res = computeEventEV(eventConfig, valuations, mid, isGameWinRateForBo3);
+      const res = computeEventEV(eventConfig, valuations, mid, isGameWinRateForBo3, quitEarlyWins);
       if (res.expNetUSD < 0) {
         low = mid;
       } else {
@@ -266,14 +337,14 @@ export function findBreakEvenWinRates(eventConfig, valuations, isGameWinRateForB
 
   // Binary search for Net Gems == 0
   let breakEvenGems = null;
-  const gems0 = computeEventEV(eventConfig, valuations, 0, isGameWinRateForBo3).expNetGems;
-  const gems100 = computeEventEV(eventConfig, valuations, 100, isGameWinRateForBo3).expNetGems;
+  const gems0 = computeEventEV(eventConfig, valuations, 0, isGameWinRateForBo3, quitEarlyWins).expNetGems;
+  const gems100 = computeEventEV(eventConfig, valuations, 100, isGameWinRateForBo3, quitEarlyWins).expNetGems;
 
   if (gems0 <= 0 && gems100 >= 0) {
     low = 0; high = 100;
     for (let i = 0; i < 40; i++) {
       const mid = (low + high) / 2;
-      const res = computeEventEV(eventConfig, valuations, mid, isGameWinRateForBo3);
+      const res = computeEventEV(eventConfig, valuations, mid, isGameWinRateForBo3, quitEarlyWins);
       if (res.expNetGems < 0) {
         low = mid;
       } else {

@@ -8,7 +8,9 @@ import {
   calculateEntryFeeUSD,
   computeEventEV,
   findBreakEvenWinRates,
-  calculateWinDistribution
+  calculateWinDistribution,
+  hasNonLinearGemPayout,
+  getDefaultQuitWins
 } from './calculator.js';
 
 // MTG Color Theme Definitions
@@ -78,6 +80,8 @@ const STATE = {
   userWinRate: 56.5,
   winRateRange: '50-70',
   isGameWinRateForBo3: true,
+  quitEarlyEnabled: false,
+  quitEarlyWins: 5,
   cachedCurrentEvent: null,
   theme: 'random',
   activeThemeKey: 'blue',
@@ -260,6 +264,10 @@ function init() {
     STATE.currentEvent = JSON.parse(JSON.stringify(initialEvent));
   }
 
+  if (hasNonLinearGemPayout(STATE.currentEvent)) {
+    STATE.quitEarlyWins = getDefaultQuitWins(STATE.currentEvent);
+  }
+
   setupEventListeners();
   renderPresetDropdown();
   syncCurrentEventToForm();
@@ -393,6 +401,52 @@ function renderPresetDropdown() {
   }
 }
 
+export function getEffectiveQuitWins() {
+  if (STATE.quitEarlyEnabled && STATE.currentEvent && hasNonLinearGemPayout(STATE.currentEvent)) {
+    return STATE.quitEarlyWins;
+  }
+  return null;
+}
+
+export function syncQuitEarlyUI() {
+  const container = document.getElementById('quit-early-control');
+  const checkbox = document.getElementById('check-quit-early');
+  const select = document.getElementById('select-quit-wins');
+  if (!container || !checkbox || !select || !STATE.currentEvent) return;
+
+  const isNonLinear = hasNonLinearGemPayout(STATE.currentEvent);
+  if (!isNonLinear) {
+    container.classList.add('hidden');
+    STATE.quitEarlyEnabled = false;
+    checkbox.checked = false;
+    return;
+  }
+
+  container.classList.remove('hidden');
+
+  const maxWins = STATE.currentEvent.maxWins || 7;
+  const defaultWins = getDefaultQuitWins(STATE.currentEvent);
+
+  if (!STATE.quitEarlyWins || STATE.quitEarlyWins >= maxWins || STATE.quitEarlyWins < 1) {
+    STATE.quitEarlyWins = defaultWins;
+  }
+
+  // Populate options (1 through maxWins - 1)
+  select.innerHTML = '';
+  for (let w = 1; w < maxWins; w++) {
+    const opt = document.createElement('option');
+    opt.value = String(w);
+    opt.textContent = String(w);
+    if (w === STATE.quitEarlyWins) {
+      opt.selected = true;
+    }
+    select.appendChild(opt);
+  }
+
+  checkbox.checked = !!STATE.quitEarlyEnabled;
+  select.value = String(STATE.quitEarlyWins);
+}
+
 function syncCurrentEventToForm() {
   if (!STATE.currentEvent) return;
 
@@ -430,6 +484,8 @@ function syncCurrentEventToForm() {
   if (bo3Badge) {
     bo3Badge.classList.toggle('hidden', !ev.isBo3);
   }
+
+  syncQuitEarlyUI();
 }
 
 function syncFormToCurrentEvent() {
@@ -551,11 +607,17 @@ function renderRewardsTable() {
     effectiveWinRate = 3 * winRate * winRate - 2 * winRate * winRate * winRate;
   }
 
+  const quitWins = getEffectiveQuitWins();
+  const effectiveMaxWins = (quitWins !== null && quitWins !== undefined && quitWins > 0 && quitWins < STATE.currentEvent.maxWins)
+    ? quitWins
+    : STATE.currentEvent.maxWins;
+
   const distribution = calculateWinDistribution(
-    STATE.currentEvent.maxWins,
+    effectiveMaxWins,
     STATE.currentEvent.maxLosses,
     STATE.currentEvent.formatType,
-    effectiveWinRate
+    effectiveWinRate,
+    STATE.currentEvent.maxWins
   );
 
   const probMap = new Map();
@@ -665,11 +727,17 @@ function updateAllCalculationsWithoutRecreatingRewards() {
     effectiveWinRate = 3 * winRate * winRate - 2 * winRate * winRate * winRate;
   }
 
+  const quitWins = getEffectiveQuitWins();
+  const effectiveMaxWins = (quitWins !== null && quitWins !== undefined && quitWins > 0 && quitWins < STATE.currentEvent.maxWins)
+    ? quitWins
+    : STATE.currentEvent.maxWins;
+
   const distribution = calculateWinDistribution(
-    STATE.currentEvent.maxWins,
+    effectiveMaxWins,
     STATE.currentEvent.maxLosses,
     STATE.currentEvent.formatType,
-    effectiveWinRate
+    effectiveWinRate,
+    STATE.currentEvent.maxWins
   );
 
   const probMap = new Map();
@@ -696,17 +764,20 @@ function updateAllCalculationsWithoutRecreatingRewards() {
 }
 
 function renderSummaryKPIs() {
+  const quitWins = getEffectiveQuitWins();
   const ev = computeEventEV(
     STATE.currentEvent,
     STATE.valuations,
     STATE.userWinRate,
-    STATE.isGameWinRateForBo3
+    STATE.isGameWinRateForBo3,
+    quitWins
   );
 
   const be = findBreakEvenWinRates(
     STATE.currentEvent,
     STATE.valuations,
-    STATE.isGameWinRateForBo3
+    STATE.isGameWinRateForBo3,
+    quitWins
   );
 
   // User WR display in input
@@ -832,6 +903,7 @@ function renderExpectedPayoutsTable() {
 
   tbody.innerHTML = '';
   const winRates = getWinRateList();
+  const quitWins = getEffectiveQuitWins();
 
   winRates.forEach(wr => {
     const isUserWR = Math.abs(wr - STATE.userWinRate) < 0.001;
@@ -839,7 +911,8 @@ function renderExpectedPayoutsTable() {
       STATE.currentEvent,
       STATE.valuations,
       wr,
-      STATE.isGameWinRateForBo3
+      STATE.isGameWinRateForBo3,
+      quitWins
     );
 
     const tr = document.createElement('tr');
@@ -1032,6 +1105,8 @@ function initCharts() {
 function renderCharts() {
   if (!STATE.currentEvent) return;
 
+  const quitWins = getEffectiveQuitWins();
+
   // 1. Update EV Chart
   if (STATE.charts.evChart) {
     const labels = [];
@@ -1044,7 +1119,8 @@ function renderCharts() {
         STATE.currentEvent,
         STATE.valuations,
         wr,
-        STATE.isGameWinRateForBo3
+        STATE.isGameWinRateForBo3,
+        quitWins
       );
       netData.push(ev.expNetUSD);
       zeroLine.push(0);
@@ -1069,11 +1145,16 @@ function renderCharts() {
       effectiveWinRate = 3 * winRate * winRate - 2 * winRate * winRate * winRate;
     }
 
+    const effectiveMaxWins = (quitWins !== null && quitWins !== undefined && quitWins > 0 && quitWins < STATE.currentEvent.maxWins)
+      ? quitWins
+      : STATE.currentEvent.maxWins;
+
     const distribution = calculateWinDistribution(
-      STATE.currentEvent.maxWins,
+      effectiveMaxWins,
       STATE.currentEvent.maxLosses,
       STATE.currentEvent.formatType,
-      effectiveWinRate
+      effectiveWinRate,
+      STATE.currentEvent.maxWins
     );
 
     const labels = distribution.map(d => `${d.wins} ${d.wins === 1 ? 'Win' : 'Wins'}`);
@@ -1101,18 +1182,25 @@ function showDistributionModal(winRatePct) {
     effectiveWinRate = 3 * winRate * winRate - 2 * winRate * winRate * winRate;
   }
 
+  const quitWins = getEffectiveQuitWins();
+  const effectiveMaxWins = (quitWins !== null && quitWins !== undefined && quitWins > 0 && quitWins < STATE.currentEvent.maxWins)
+    ? quitWins
+    : STATE.currentEvent.maxWins;
+
   const distribution = calculateWinDistribution(
-    STATE.currentEvent.maxWins,
+    effectiveMaxWins,
     STATE.currentEvent.maxLosses,
     STATE.currentEvent.formatType,
-    effectiveWinRate
+    effectiveWinRate,
+    STATE.currentEvent.maxWins
   );
 
   const ev = computeEventEV(
     STATE.currentEvent,
     STATE.valuations,
     winRatePct,
-    STATE.isGameWinRateForBo3
+    STATE.isGameWinRateForBo3,
+    quitWins
   );
 
   title.textContent = `Win Probability Breakdown (${winRatePct.toFixed(1)}% WR)`;
@@ -1123,7 +1211,7 @@ function showDistributionModal(winRatePct) {
         <span class="${ev.expNetUSD >= 0 ? 'val-positive' : 'val-negative'}">Net EV: ${ev.expNetUSD >= 0 ? '+' : ''}$${ev.expNetUSD.toFixed(2)}</span>
       </div>
       <div class="text-slate-400 text-[11px] flex justify-between">
-        <span>Format: ${STATE.currentEvent.formatType === 'fixed_matches' ? 'Fixed Matches' : `${STATE.currentEvent.maxWins} Wins or ${STATE.currentEvent.maxLosses} Losses`}</span>
+        <span>Format: ${STATE.currentEvent.formatType === 'fixed_matches' ? 'Fixed Matches' : `${STATE.currentEvent.maxWins} Wins or ${STATE.currentEvent.maxLosses} Losses`}${quitWins ? ` (Quit at ${quitWins} wins)` : ''}</span>
         <span>Expected Total Games: ${ev.expTotalGames.toFixed(1)}</span>
       </div>
     </div>
@@ -1201,6 +1289,12 @@ function selectPreset(presetId) {
 
   STATE.currentEvent = JSON.parse(JSON.stringify(found));
   localStorage.setItem(STORAGE_KEYS.LAST_EVENT_ID, found.id);
+
+  if (hasNonLinearGemPayout(STATE.currentEvent)) {
+    STATE.quitEarlyWins = getDefaultQuitWins(STATE.currentEvent);
+  } else {
+    STATE.quitEarlyEnabled = false;
+  }
 
   syncCurrentEventToForm();
   renderRewardsTable();
@@ -1638,6 +1732,27 @@ function setupEventListeners() {
       STATE.winRateRange = e.target.value;
       renderExpectedPayoutsTable();
       triggerAutoSave();
+    });
+  }
+
+  // Quit Early controls
+  const checkQuitEarly = document.getElementById('check-quit-early');
+  if (checkQuitEarly) {
+    checkQuitEarly.addEventListener('change', (e) => {
+      STATE.quitEarlyEnabled = e.target.checked;
+      renderRewardsTable();
+      updateAllCalculations();
+    });
+  }
+
+  const selectQuitWins = document.getElementById('select-quit-wins');
+  if (selectQuitWins) {
+    selectQuitWins.addEventListener('change', (e) => {
+      STATE.quitEarlyWins = parseInt(e.target.value) || 5;
+      if (STATE.quitEarlyEnabled) {
+        renderRewardsTable();
+        updateAllCalculations();
+      }
     });
   }
 
