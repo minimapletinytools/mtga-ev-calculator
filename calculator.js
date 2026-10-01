@@ -53,7 +53,8 @@ export function matchWinRateToGameWinRate(matchWinRate) {
 export function hasNonLinearGemPayout(eventConfig) {
   if (!eventConfig || !eventConfig.rewards || eventConfig.rewards.length < 2) return false;
   
-  if (eventConfig.id === 'arena_direct_play' || eventConfig.id === 'arena_direct_collector') {
+  if (eventConfig.id === 'arena_direct_play' || eventConfig.id === 'arena_direct_collector' ||
+      eventConfig.id === 'arena_direct_play_uw' || eventConfig.id === 'arena_direct_collector_uw') {
     return true;
   }
 
@@ -78,8 +79,8 @@ export function hasNonLinearGemPayout(eventConfig) {
  */
 export function getDefaultQuitWins(eventConfig) {
   if (!eventConfig) return 5;
-  if (eventConfig.id === 'arena_direct_play') return 5;
-  if (eventConfig.id === 'arena_direct_collector') return 6;
+  if (eventConfig.id === 'arena_direct_play' || eventConfig.id === 'arena_direct_play_uw') return 5;
+  if (eventConfig.id === 'arena_direct_collector' || eventConfig.id === 'arena_direct_collector_uw') return 6;
 
   const rewards = eventConfig.rewards || [];
   let maxGems = -1;
