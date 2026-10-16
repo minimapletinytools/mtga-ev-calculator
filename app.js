@@ -536,7 +536,7 @@ function adjustRewardsArrayToMaxWins() {
   // Ensure elements up to maxW exist
   for (let w = 0; w <= maxW; w++) {
     if (!STATE.currentEvent.rewards[w]) {
-      const prev = STATE.currentEvent.rewards[w - 1] || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+      const prev = STATE.currentEvent.rewards[w - 1] || { gems: 0, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
       STATE.currentEvent.rewards[w] = { ...prev, wins: w };
     } else {
       STATE.currentEvent.rewards[w].wins = w;
@@ -551,6 +551,7 @@ function renderValuations() {
   const gemPriceInput = document.getElementById('val-gem-price');
   const gemAmountInput = document.getElementById('val-gem-amount');
   const packPriceInput = document.getElementById('val-pack-price');
+  const mythicPackPriceInput = document.getElementById('val-mythicpack-price');
   const playBoxPriceInput = document.getElementById('val-playbox-price');
   const colBoxPriceInput = document.getElementById('val-collectorbox-price');
   const otherPriceInput = document.getElementById('val-other-price');
@@ -562,6 +563,7 @@ function renderValuations() {
   if (gemPriceInput && document.activeElement !== gemPriceInput) gemPriceInput.value = STATE.valuations.gemsBundlePrice;
   if (gemAmountInput && document.activeElement !== gemAmountInput) gemAmountInput.value = STATE.valuations.gemsBundleAmount;
   if (packPriceInput && document.activeElement !== packPriceInput) packPriceInput.value = STATE.valuations.packValue;
+  if (mythicPackPriceInput && document.activeElement !== mythicPackPriceInput) mythicPackPriceInput.value = STATE.valuations.mythicPackValue !== undefined ? STATE.valuations.mythicPackValue : 0;
   if (playBoxPriceInput && document.activeElement !== playBoxPriceInput) playBoxPriceInput.value = STATE.valuations.playBoxValue;
   if (colBoxPriceInput && document.activeElement !== colBoxPriceInput) colBoxPriceInput.value = STATE.valuations.collectorBoxValue;
   if (otherPriceInput && document.activeElement !== otherPriceInput) otherPriceInput.value = STATE.valuations.otherValue;
@@ -583,6 +585,7 @@ function syncValuationsFromForm() {
   const gemPriceInput = document.getElementById('val-gem-price');
   const gemAmountInput = document.getElementById('val-gem-amount');
   const packPriceInput = document.getElementById('val-pack-price');
+  const mythicPackPriceInput = document.getElementById('val-mythicpack-price');
   const playBoxPriceInput = document.getElementById('val-playbox-price');
   const colBoxPriceInput = document.getElementById('val-collectorbox-price');
   const otherPriceInput = document.getElementById('val-other-price');
@@ -591,6 +594,7 @@ function syncValuationsFromForm() {
   STATE.valuations.gemsBundlePrice = Math.max(0.01, parseFloat(gemPriceInput?.value) || 100);
   STATE.valuations.gemsBundleAmount = Math.max(1, parseInt(gemAmountInput?.value) || 20000);
   STATE.valuations.packValue = Math.max(0, parseFloat(packPriceInput?.value) || 0);
+  STATE.valuations.mythicPackValue = Math.max(0, parseFloat(mythicPackPriceInput?.value) || 0);
   STATE.valuations.playBoxValue = Math.max(0, parseFloat(playBoxPriceInput?.value) || 0);
   STATE.valuations.collectorBoxValue = Math.max(0, parseFloat(colBoxPriceInput?.value) || 0);
   STATE.valuations.otherValue = Math.max(0, parseFloat(otherPriceInput?.value) || 0);
@@ -636,6 +640,9 @@ function renderRewardsTable() {
     </td>
     <td class="py-2 px-1.5">
       <input type="number" step="0.1" min="0" data-field="packs" class="baseline-input w-16 sm:w-20 bg-slate-950/90 text-amber-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-amber-500 outline-none text-xs" value="${baseline.packs || 0}">
+    </td>
+    <td class="py-2 px-1.5">
+      <input type="number" step="0.1" min="0" data-field="mythicPacks" class="baseline-input w-16 sm:w-20 bg-slate-950/90 text-orange-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-orange-500 outline-none text-xs" value="${baseline.mythicPacks || 0}">
     </td>
     <td class="py-2 px-1.5">
       <input type="number" step="1" min="0" data-field="playBoxes" class="baseline-input w-16 sm:w-20 bg-slate-950/90 text-blue-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-blue-500 outline-none text-xs" value="${baseline.playBoxes || 0}">
@@ -708,6 +715,9 @@ function renderRewardsTable() {
       </td>
       <td class="py-2 px-1.5">
         <input type="number" step="0.1" min="0" data-win="${reward.wins}" data-field="packs" class="reward-input w-16 sm:w-20 bg-slate-950/90 text-amber-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-amber-500 outline-none text-xs" value="${reward.packs || 0}">
+      </td>
+      <td class="py-2 px-1.5">
+        <input type="number" step="1" min="0" data-win="${reward.wins}" data-field="mythicPacks" class="reward-input w-16 sm:w-20 bg-slate-950/90 text-orange-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-orange-500 outline-none text-xs" value="${reward.mythicPacks || 0}">
       </td>
       <td class="py-2 px-1.5">
         <input type="number" step="1" min="0" data-win="${reward.wins}" data-field="playBoxes" class="reward-input w-16 sm:w-20 bg-slate-950/90 text-blue-300 font-mono px-2 py-1.5 rounded-lg border border-slate-700/80 focus:border-blue-500 outline-none text-xs" value="${reward.playBoxes || 0}">
@@ -975,9 +985,11 @@ function renderExpectedPayoutsTable() {
   if (!tbody || !STATE.currentEvent) return;
 
   const rewards = STATE.currentEvent.rewards || [];
-  const hasPlayBoxes = rewards.some(r => (r.playBoxes || 0) > 0);
-  const hasCollectorBoxes = rewards.some(r => (r.collectorBoxes || 0) > 0);
-  const hasOther = rewards.some(r => (r.other || 0) > 0);
+  const baseline = STATE.currentEvent.baseline || getEventBaseline(STATE.currentEvent);
+  const hasPlayBoxes = rewards.some(r => (r.playBoxes || 0) > 0) || (baseline.playBoxes || 0) > 0;
+  const hasCollectorBoxes = rewards.some(r => (r.collectorBoxes || 0) > 0) || (baseline.collectorBoxes || 0) > 0;
+  const hasMythicPacks = rewards.some(r => (r.mythicPacks || 0) > 0) || (baseline.mythicPacks || 0) > 0;
+  const hasOther = rewards.some(r => (r.other || 0) > 0) || (baseline.other || 0) > 0;
 
   // Render Table Header with Highlighted Net Value column, USD/hr, and dynamic reward columns
   if (thead) {
@@ -994,6 +1006,7 @@ function renderExpectedPayoutsTable() {
         <th class="py-3 px-3 text-right">Net Gems</th>
         <th class="py-3 px-3 text-right">Gross Gems</th>
         <th class="py-3 px-3 text-right">Packs</th>
+        ${hasMythicPacks ? '<th class="py-3 px-3 text-right text-orange-400">Mythic Packs</th>' : ''}
         ${hasPlayBoxes ? '<th class="py-3 px-3 text-right text-blue-400">Play Boxes</th>' : ''}
         ${hasCollectorBoxes ? '<th class="py-3 px-3 text-right text-purple-400">Collector Boxes</th>' : ''}
         ${hasOther ? '<th class="py-3 px-3 text-right text-emerald-400">Other ($)</th>' : ''}
@@ -1057,6 +1070,7 @@ function renderExpectedPayoutsTable() {
       <td class="py-2.5 px-3 text-right currency-packs">
         ${ev.expPacks.toFixed(2)}
       </td>
+      ${hasMythicPacks ? `<td class="py-2.5 px-3 text-right ${ev.expMythicPacks > 0 ? 'currency-mythic font-bold' : 'text-slate-400'}">${ev.expMythicPacks.toFixed(2)}</td>` : ''}
       ${hasPlayBoxes ? `<td class="py-2.5 px-3 text-right ${ev.expPlayBoxes > 0 ? 'currency-play font-bold' : 'text-slate-400'}">${ev.expPlayBoxes.toFixed(3)}</td>` : ''}
       ${hasCollectorBoxes ? `<td class="py-2.5 px-3 text-right ${ev.expCollectorBoxes > 0 ? 'currency-col font-bold' : 'text-slate-400'}">${ev.expCollectorBoxes.toFixed(3)}</td>` : ''}
       ${hasOther ? `<td class="py-2.5 px-3 text-right text-slate-300">$${ev.expOther.toFixed(2)}</td>` : ''}
@@ -1338,7 +1352,7 @@ function showDistributionModal(winRatePct) {
   const baseline = getEventBaseline(STATE.currentEvent);
 
   distribution.forEach(d => {
-    const r = rewardsMap.get(d.wins) || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+    const r = rewardsMap.get(d.wins) || { gems: 0, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
     const effectiveReward = getEffectiveReward(r, baseline);
     const tierUSD = calculateRewardUSD(effectiveReward, STATE.valuations);
     const atLeastChance = (cumulativeMap.get(d.wins) * 100).toFixed(1);
@@ -1425,16 +1439,16 @@ function createNewCustomEvent() {
     maxLosses: 2,
     formatType: 'elimination',
     isBo3: false,
-    baseline: { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
+    baseline: { gems: 0, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
     rewards: [
-      { wins: 0, gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
-      { wins: 1, gems: 100, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
-      { wins: 2, gems: 250, packs: 1, playBoxes: 0, collectorBoxes: 0, other: 0 },
-      { wins: 3, gems: 1000, packs: 2, playBoxes: 0, collectorBoxes: 0, other: 0 },
-      { wins: 4, gems: 1400, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 },
-      { wins: 5, gems: 1600, packs: 4, playBoxes: 0, collectorBoxes: 0, other: 0 },
-      { wins: 6, gems: 1800, packs: 5, playBoxes: 0, collectorBoxes: 0, other: 0 },
-      { wins: 7, gems: 2200, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 }
+      { wins: 0, gems: 0, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 1, gems: 100, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 2, gems: 250, packs: 1, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 3, gems: 1000, packs: 2, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 4, gems: 1400, packs: 3, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 5, gems: 1600, packs: 4, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 6, gems: 1800, packs: 5, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 },
+      { wins: 7, gems: 2200, packs: 6, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 }
     ]
   };
 
@@ -1745,7 +1759,7 @@ function setupEventListeners() {
   if (btnDistBtnClose) btnDistBtnClose.addEventListener('click', hideDistributionModal);
 
   // Valuations inputs change
-  ['val-gem-price', 'val-gem-amount', 'val-pack-price', 'val-playbox-price', 'val-collectorbox-price', 'val-other-price', 'val-game-time'].forEach(id => {
+  ['val-gem-price', 'val-gem-amount', 'val-pack-price', 'val-mythicpack-price', 'val-playbox-price', 'val-collectorbox-price', 'val-other-price', 'val-game-time'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('input', () => {

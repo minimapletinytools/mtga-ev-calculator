@@ -206,6 +206,7 @@ export function getEventBaseline(eventConfig) {
     return {
       gems: eventConfig.baseline.gems || 0,
       packs: eventConfig.baseline.packs || 0,
+      mythicPacks: eventConfig.baseline.mythicPacks || eventConfig.baseline.mythicPack || 0,
       playBoxes: eventConfig.baseline.playBoxes || 0,
       collectorBoxes: eventConfig.baseline.collectorBoxes || 0,
       other: eventConfig.baseline.other || 0
@@ -213,27 +214,28 @@ export function getEventBaseline(eventConfig) {
   }
   // Default fallbacks based on category/name if not explicitly set
   if (eventConfig?.category === 'Arena Direct' || eventConfig?.id?.includes('arena_direct')) {
-    return { gems: 0, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 };
+    return { gems: 0, packs: 6, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
   }
   if (eventConfig?.category === 'Limited Sealed' || eventConfig?.id?.includes('sealed')) {
-    return { gems: 0, packs: 6, playBoxes: 0, collectorBoxes: 0, other: 0 };
+    return { gems: 0, packs: 6, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
   }
   if (eventConfig?.category === 'Limited Draft' || eventConfig?.id?.includes('draft')) {
-    return { gems: 0, packs: 3, playBoxes: 0, collectorBoxes: 0, other: 0 };
+    return { gems: 0, packs: 3, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
   }
-  return { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+  return { gems: 0, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
 }
 
 /**
  * Combines tier-specific rewards with the baseline rewards
  */
 export function getEffectiveReward(reward, baseline) {
-  const b = baseline || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
-  const r = reward || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+  const b = baseline || { gems: 0, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+  const r = reward || { gems: 0, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
   return {
     wins: r.wins !== undefined ? r.wins : 0,
     gems: (r.gems || 0) + (b.gems || 0),
     packs: (r.packs || 0) + (b.packs || 0),
+    mythicPacks: (r.mythicPacks || r.mythicPack || 0) + (b.mythicPacks || b.mythicPack || 0),
     playBoxes: (r.playBoxes || 0) + (b.playBoxes || 0),
     collectorBoxes: (r.collectorBoxes || 0) + (b.collectorBoxes || 0),
     other: (r.other || 0) + (b.other || 0)
@@ -247,10 +249,11 @@ export function calculateRewardUSD(reward, valuations) {
   const gemUnitRate = valuations.gemsBundlePrice / (valuations.gemsBundleAmount || 20000);
   const gemVal = (reward.gems || 0) * gemUnitRate;
   const packVal = (reward.packs || 0) * (valuations.packValue || 0);
+  const mythicPackVal = (reward.mythicPacks || reward.mythicPack || 0) * (valuations.mythicPackValue || valuations.mythicPack || 0);
   const playBoxVal = (reward.playBoxes || 0) * (valuations.playBoxValue || 0);
   const collectorBoxVal = (reward.collectorBoxes || 0) * (valuations.collectorBoxValue || 0);
   const otherVal = (reward.other || 0) * (valuations.otherValue !== undefined ? valuations.otherValue : 1);
-  return gemVal + packVal + playBoxVal + collectorBoxVal + otherVal;
+  return gemVal + packVal + mythicPackVal + playBoxVal + collectorBoxVal + otherVal;
 }
 
 /**
@@ -292,6 +295,7 @@ export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRat
 
   let expGems = 0;
   let expPacks = 0;
+  let expMythicPacks = 0;
   let expPlayBoxes = 0;
   let expCollectorBoxes = 0;
   let expOther = 0;
@@ -307,12 +311,13 @@ export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRat
   });
 
   distribution.forEach(item => {
-    const r = rewardsMap.get(item.wins) || { gems: 0, packs: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
+    const r = rewardsMap.get(item.wins) || { gems: 0, packs: 0, mythicPacks: 0, playBoxes: 0, collectorBoxes: 0, other: 0 };
     const effectiveReward = getEffectiveReward(r, baseline);
     const tierGrossUSD = calculateRewardUSD(effectiveReward, valuations);
     
     expGems += item.probability * (effectiveReward.gems || 0);
     expPacks += item.probability * (effectiveReward.packs || 0);
+    expMythicPacks += item.probability * (effectiveReward.mythicPacks || 0);
     expPlayBoxes += item.probability * (effectiveReward.playBoxes || 0);
     expCollectorBoxes += item.probability * (effectiveReward.collectorBoxes || 0);
     expOther += item.probability * (effectiveReward.other || 0);
@@ -350,6 +355,7 @@ export function computeEventEV(eventConfig, valuations, winRatePct, isGameWinRat
     expGems,
     expNetGems,
     expPacks,
+    expMythicPacks,
     expPlayBoxes,
     expCollectorBoxes,
     expOther,

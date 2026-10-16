@@ -32,6 +32,7 @@
   --theme-prog-bar: #06b6d4;
   --theme-currency-gems: #38bdf8;
   --theme-currency-packs: #fde047;
+  --theme-currency-mythic: #fb923c;
   --theme-currency-play: #60a5fa;
   --theme-currency-col: #c084fc;
 }
@@ -67,6 +68,7 @@
   --theme-prog-bar: #d97706;
   --theme-currency-gems: #0284c7;
   --theme-currency-packs: #b45309;
+  --theme-currency-mythic: #ea580c;
   --theme-currency-play: #2563eb;
   --theme-currency-col: #7e22ce;
 }
@@ -102,6 +104,7 @@
   --theme-prog-bar: #a855f7;
   --theme-currency-gems: #38bdf8;
   --theme-currency-packs: #fde047;
+  --theme-currency-mythic: #fb923c;
   --theme-currency-play: #60a5fa;
   --theme-currency-col: #c084fc;
 }
@@ -137,6 +140,7 @@
   --theme-prog-bar: #f87171;
   --theme-currency-gems: #38bdf8;
   --theme-currency-packs: #fde047;
+  --theme-currency-mythic: #fb923c;
   --theme-currency-play: #60a5fa;
   --theme-currency-col: #c084fc;
 }
@@ -172,6 +176,7 @@
   --theme-prog-bar: #10b981;
   --theme-currency-gems: #38bdf8;
   --theme-currency-packs: #fde047;
+  --theme-currency-mythic: #fb923c;
   --theme-currency-play: #60a5fa;
   --theme-currency-col: #c084fc;
 }
@@ -207,6 +212,7 @@
   --theme-prog-bar: #cbd5e1;
   --theme-currency-gems: #38bdf8;
   --theme-currency-packs: #fde047;
+  --theme-currency-mythic: #fb923c;
   --theme-currency-play: #60a5fa;
   --theme-currency-col: #c084fc;
 }
@@ -454,6 +460,7 @@ textarea:focus {
 /* Currency text classes */
 .currency-gems { color: var(--theme-currency-gems) !important; }
 .currency-packs { color: var(--theme-currency-packs) !important; }
+.currency-mythic { color: var(--theme-currency-mythic) !important; }
 .currency-play { color: var(--theme-currency-play) !important; }
 .currency-col { color: var(--theme-currency-col) !important; }
 
